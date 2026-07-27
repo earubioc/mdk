@@ -544,7 +544,15 @@ body.dark-mode .tool-btn.is-active { background: #3A2622; border-color: #4A2E28;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-right: -6px;
 }
+.info-news-list::-webkit-scrollbar { width: 6px; }
+.info-news-list::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+.info-news-list::-webkit-scrollbar-thumb:hover { background: var(--light); }
+body.dark-mode .info-news-list::-webkit-scrollbar-thumb { background: #4A2E28; }
 
 .info-news-item { font-size: 8.5pt; line-height: 1.4; }
 .info-news-version {

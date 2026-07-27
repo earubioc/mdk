@@ -51,6 +51,109 @@ function send(channel, payload) {
   }
 }
 
+// ---------- abrir .md por asociación de archivos / doble clic ----------
+// Windows abre MDK pasando la ruta del archivo como argumento de línea de
+// comandos (tanto al asociar .md a MDK como al arrastrar un archivo sobre el
+// ícono del programa). Sin este bloque, ese argumento simplemente se ignora
+// y la app arranca con un documento en blanco — el bug reportado.
+function isSupportedDocPath(p) {
+  return typeof p === 'string' && /\.(md|markdown|txt)$/i.test(p);
+}
+
+function extractFilePathFromArgv(argv) {
+  // argv[0] es el ejecutable (o, en desarrollo, el binario de Electron); el
+  // resto son argumentos. Se toma el último que parezca una ruta .md/.txt.
+  const candidates = argv.filter((a, i) => i > 0 && isSupportedDocPath(a));
+  return candidates.length ? candidates[candidates.length - 1] : null;
+}
+
+function openFilePathInRenderer(filePath) {
+  if (!filePath) return;
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    send('open-file', { filePath, content });
+    addRecentFile(filePath);
+  } catch (err) {
+    dialog.showErrorBox(t('dialog.openErrorTitle'), String(err.message || err));
+  }
+}
+
+// ---------- archivos recientes ----------
+// Se guardan en el mismo settings.json que el idioma (no localStorage: el
+// menú nativo, que vive en el proceso principal, es quien arma "Abrir
+// reciente", y solo el proceso principal puede leer settings.json).
+const MAX_RECENT_FILES = 15;
+
+function addRecentFile(filePath) {
+  if (!filePath) return;
+  const settings = readSettings();
+  let recent = Array.isArray(settings.recentFiles) ? settings.recentFiles : [];
+  recent = [filePath, ...recent.filter((p) => p !== filePath)].slice(0, MAX_RECENT_FILES);
+  writeSettings({ ...settings, recentFiles: recent });
+  buildMenu();
+}
+
+function getRecentFiles() {
+  const settings = readSettings();
+  const recent = Array.isArray(settings.recentFiles) ? settings.recentFiles : [];
+  // No mostrar rutas de archivos que ya no existen (movidos/borrados).
+  return recent.filter((p) => {
+    try {
+      return fs.existsSync(p);
+    } catch (e) {
+      return false;
+    }
+  });
+}
+
+function clearRecentFiles() {
+  writeSettings({ ...readSettings(), recentFiles: [] });
+  buildMenu();
+}
+
+function buildRecentFilesSubmenu() {
+  const recent = getRecentFiles();
+  if (!recent.length) {
+    return [{ label: t('menu.file.openRecentEmpty'), enabled: false }];
+  }
+  const items = recent.map((filePath) => ({
+    label: `${path.basename(filePath)}  —  ${path.dirname(filePath)}`,
+    click: () => openFilePathInRenderer(filePath)
+  }));
+  items.push({ type: 'separator' });
+  items.push({ label: t('menu.file.clearRecent'), click: clearRecentFiles });
+  return items;
+}
+
+// Instancia única: si el usuario hace doble clic en un segundo .md mientras
+// MDK ya está abierto, Windows lanzaría un segundo proceso completo. Con el
+// lock, ese segundo proceso se cierra solo y le pasa su línea de comandos
+// (con la ruta del archivo) a la instancia que ya está corriendo, vía el
+// evento 'second-instance' — así el archivo se abre como pestaña nueva en la
+// misma ventana en vez de abrir una ventana de MDK por cada archivo.
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (_event, argv) => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+    openFilePathInRenderer(extractFilePathFromArgv(argv));
+  });
+
+  app.whenReady().then(() => {
+    createWindow();
+    const initialFilePath = extractFilePathFromArgv(process.argv);
+    if (initialFilePath) {
+      // Esperar a que el renderer haya terminado de cargar (y por lo tanto ya
+      // registró su listener 'open-file') antes de empujarle el archivo.
+      mainWindow.webContents.once('did-finish-load', () => openFilePathInRenderer(initialFilePath));
+    }
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
@@ -104,6 +207,7 @@ function buildMenu() {
       submenu: [
         { label: t('menu.file.newTab'), accelerator: 'CmdOrCtrl+N', click: () => send('menu-action', 'new-tab') },
         { label: t('menu.file.open'), accelerator: 'CmdOrCtrl+O', click: () => send('menu-action', 'open') },
+        { label: t('menu.file.openRecent'), submenu: buildRecentFilesSubmenu() },
         { type: 'separator' },
         { label: t('menu.file.save'), accelerator: 'CmdOrCtrl+S', click: () => send('menu-action', 'save') },
         { label: t('menu.file.saveAs'), accelerator: 'CmdOrCtrl+Shift+S', click: () => send('menu-action', 'save-as') },
@@ -209,6 +313,21 @@ ipcMain.handle('dialog-open', async () => {
   const filePath = result.filePaths[0];
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
+    addRecentFile(filePath);
+    return { cancelled: false, filePath, content };
+  } catch (err) {
+    dialog.showErrorBox(t('dialog.openErrorTitle'), String(err.message || err));
+    return { cancelled: true };
+  }
+});
+
+// Usado por arrastrar-y-soltar: el renderer ya tiene la ruta del archivo
+// soltado (File.path) pero no puede leer el disco directamente
+// (nodeIntegration desactivado), así que se lo pide al proceso principal.
+ipcMain.handle('read-file-path', async (_evt, filePath) => {
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    addRecentFile(filePath);
     return { cancelled: false, filePath, content };
   } catch (err) {
     dialog.showErrorBox(t('dialog.openErrorTitle'), String(err.message || err));
@@ -233,6 +352,7 @@ ipcMain.handle('save-file', async (_evt, { content, filePath, saveAs }) => {
   }
   try {
     fs.writeFileSync(targetPath, content, 'utf-8');
+    addRecentFile(targetPath);
     return { cancelled: false, filePath: targetPath };
   } catch (err) {
     dialog.showErrorBox(t('dialog.saveErrorTitle'), String(err.message || err));
@@ -298,8 +418,6 @@ ipcMain.on('get-language-sync', (evt) => {
 });
 ipcMain.handle('get-language', () => currentLanguage);
 ipcMain.on('set-language', (_evt, lang) => setLanguage(lang));
-
-app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

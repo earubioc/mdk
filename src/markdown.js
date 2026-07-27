@@ -13,6 +13,24 @@
       .replace(/"/g, '&quot;');
   }
 
+  // Divide una fila de tabla GFM ("| a | b |" o "a | b") en celdas, quitando
+  // el pipe inicial/final opcional.
+  function splitTableRow(line) {
+    let l = line.trim();
+    if (l.charAt(0) === '|') l = l.slice(1);
+    if (l.charAt(l.length - 1) === '|') l = l.slice(0, -1);
+    return l.split('|').map((c) => c.trim());
+  }
+
+  // Una fila separadora de tabla es solo guiones (y ':' opcional en los
+  // extremos para alinear), por ejemplo "---|:--:|--:".
+  function isTableSeparator(line) {
+    if (line.indexOf('|') === -1 && line.indexOf('-') === -1) return false;
+    const cells = splitTableRow(line);
+    if (!cells.length) return false;
+    return cells.every((c) => /^:?-{1,}:?$/.test(c));
+  }
+
   function renderInline(text) {
     let out = escapeHtml(text);
     // inline code first so its contents are not touched by other rules
@@ -104,6 +122,40 @@
         flushList();
         html.push('<hr>');
         i++;
+        continue;
+      }
+
+      // tables (GFM-style pipe tables): fila de encabezado seguida de una
+      // fila separadora (---|---|---, con :--- / ---: / :---: para alinear)
+      if (line.indexOf('|') !== -1 && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+        flushParagraph();
+        flushList();
+        const headerCells = splitTableRow(line);
+        const align = splitTableRow(lines[i + 1]).map((c) => {
+          const left = c.charAt(0) === ':';
+          const right = c.charAt(c.length - 1) === ':';
+          if (left && right) return 'center';
+          if (right) return 'right';
+          if (left) return 'left';
+          return '';
+        });
+        i += 2;
+        const bodyRows = [];
+        while (i < lines.length && lines[i].indexOf('|') !== -1 && !/^\s*$/.test(lines[i])) {
+          bodyRows.push(splitTableRow(lines[i]));
+          i++;
+        }
+        const alignAttr = (idx) => (align[idx] ? ` style="text-align:${align[idx]}"` : '');
+        let tableHtml = '<table><thead><tr>' +
+          headerCells.map((c, idx) => `<th${alignAttr(idx)}>${renderInline(c)}</th>`).join('') +
+          '</tr></thead>';
+        if (bodyRows.length) {
+          tableHtml += '<tbody>' + bodyRows.map((row) =>
+            '<tr>' + headerCells.map((_c, idx) => `<td${alignAttr(idx)}>${renderInline(row[idx] || '')}</td>`).join('') + '</tr>'
+          ).join('') + '</tbody>';
+        }
+        tableHtml += '</table>';
+        html.push(tableHtml);
         continue;
       }
 

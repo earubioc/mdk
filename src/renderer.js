@@ -68,6 +68,9 @@
   // en src/i18n/strings.js (claves "changelog.X.Y.Z"); mantenerlo en sync
   // con CHANGELOG.md en la raíz del proyecto, que tiene el detalle completo.
   const CHANGELOG = [
+    { version: '2.6.0', textKey: 'changelog.2.6.0' },
+    { version: '2.5.1', textKey: 'changelog.2.5.1' },
+    { version: '2.5.0', textKey: 'changelog.2.5.0' },
     { version: '2.4.0', textKey: 'changelog.2.4.0' },
     { version: '2.3.1', textKey: 'changelog.2.3.1' },
     { version: '2.3.0', textKey: 'changelog.2.3.0' },
@@ -297,7 +300,11 @@
 
   // ---------- estado global de la app ----------
 
-  let currentView = 'editor'; // 'editor' | 'preview'
+  // 'editor' y 'preview' ya no son exclusivos entre sí: cada botón enciende o
+  // apaga su propio panel, y ambos pueden estar visibles a la vez (vista
+  // dividida). Se impide apagar el único panel que quede encendido.
+  let showEditor = true;
+  let showPreview = false;
   let sidebarVisible = false;
   let searchVisible = false;
   let darkMode = localStorage.getItem('mdk.darkMode') === '1';
@@ -371,7 +378,7 @@
     editor.value = '';
     renderTabs();
     refreshAll();
-    if (currentView === 'editor') editor.focus();
+    if (showEditor) editor.focus();
   }
 
   function closeDocument(id) {
@@ -477,24 +484,39 @@
     replaceRange(start, end, `[${selected}](https://)`);
   }
 
-  // ---------- vista: editor / vista previa (exclusivas) ----------
+  // ---------- vista: editor / vista previa (independientes, vista dividida posible) ----------
 
-  function setView(view) {
-    currentView = view;
-    const showPreview = view === 'preview';
+  function applyViewState() {
+    editorPane.hidden = !showEditor;
     previewPane.hidden = !showPreview;
-    editorPane.hidden = showPreview;
-    document.querySelector('[data-action="view-editor"]').classList.toggle('is-active', !showPreview);
+    document.querySelector('[data-action="view-editor"]').classList.toggle('is-active', showEditor);
     document.querySelector('[data-action="view-preview"]').classList.toggle('is-active', showPreview);
-    if (showPreview) {
-      updatePreview();
+    if (showPreview) updatePreview();
+    if (showEditor) editor.focus();
+  }
+
+  // Prende/apaga un panel. No permite apagar el único panel visible: siempre
+  // debe quedar al menos uno encendido.
+  function toggleView(view) {
+    if (view === 'editor') {
+      if (showEditor && !showPreview) return;
+      showEditor = !showEditor;
     } else {
-      editor.focus();
+      if (showPreview && !showEditor) return;
+      showPreview = !showPreview;
     }
+    applyViewState();
+  }
+
+  // Garantiza que un panel esté visible sin apagar el otro (usado por buscar,
+  // saltar al encabezado, etc. — no debe cambiar a vista exclusiva).
+  function ensurePaneVisible(view) {
+    if (view === 'editor' && !showEditor) { showEditor = true; applyViewState(); }
+    if (view === 'preview' && !showPreview) { showPreview = true; applyViewState(); }
   }
 
   function updatePreview() {
-    if (currentView !== 'preview') return;
+    if (!showPreview) return;
     preview.innerHTML = window.MDKMarkdown.render(editor.value);
   }
 
@@ -529,7 +551,7 @@
   }
 
   function jumpToLine(lineIndex) {
-    setView('editor');
+    ensurePaneVisible('editor');
     const lines = editor.value.split('\n');
     let pos = 0;
     for (let i = 0; i < lineIndex; i++) pos += lines[i].length + 1;
@@ -578,7 +600,7 @@
     }
     if (idx === -1) return;
 
-    if (currentView !== 'editor') setView('editor');
+    ensurePaneVisible('editor');
     editor.focus();
     editor.selectionStart = idx;
     editor.selectionEnd = idx + term.length;
@@ -672,8 +694,8 @@
       case 'list': toggleLinePrefix(/^\s*[-*+]\s+/, '- '); break;
       case 'quote': toggleLinePrefix(/^\s*>\s?/, '> '); break;
       case 'link': insertLink(); break;
-      case 'view-editor': setView('editor'); break;
-      case 'view-preview': setView('preview'); break;
+      case 'view-editor': toggleView('editor'); break;
+      case 'view-preview': toggleView('preview'); break;
       case 'new-tab': doNewTab(); break;
       case 'close-tab': closeDocument(activeId); break;
       case 'open': doOpen(); break;
@@ -788,26 +810,41 @@
 
   // ---------- operaciones de archivo ----------
 
-  async function doOpen() {
-    const result = await window.mdk.openFile();
-    if (result.cancelled) return;
+  // Carga contenido ya leído (de un diálogo, de doble clic en un .md, o de
+  // arrastrar un archivo a la ventana) en una pestaña: reutiliza la pestaña
+  // activa si está vacía y sin título, si no, abre una nueva.
+  function loadFileIntoWorkspace(filePath, content) {
     saveEditorIntoActiveDoc();
-
     const active = getActiveDoc();
     let doc;
     if (active && !active.filePath && !active.isDirty && active.content === '') {
       doc = active;
-      doc.filePath = result.filePath;
-      doc.content = result.content;
+      doc.filePath = filePath;
+      doc.content = content;
       doc.isDirty = false;
     } else {
-      doc = createDocument(result.content, result.filePath);
+      doc = createDocument(content, filePath);
     }
     activeId = doc.id;
     editor.value = doc.content;
     renderTabs();
     refreshAll();
     syncDirtyToMain();
+  }
+
+  async function doOpen() {
+    const result = await window.mdk.openFile();
+    if (result.cancelled) return;
+    loadFileIntoWorkspace(result.filePath, result.content);
+  }
+
+  // Abre un archivo a partir de su ruta en disco (arrastrar y soltar, o un
+  // .md abierto por asociación/doble clic mientras MDK ya está corriendo).
+  async function openExternalPath(filePath) {
+    if (!window.mdk || !window.mdk.openPath) return;
+    const result = await window.mdk.openPath(filePath);
+    if (result.cancelled) return;
+    loadFileIntoWorkspace(result.filePath, result.content);
   }
 
   async function doSave(saveAs) {
@@ -889,7 +926,7 @@
   const firstDoc = createDocument();
   activeId = firstDoc.id;
   renderTabs();
-  document.querySelector('[data-action="view-editor"]').classList.add('is-active');
+  applyViewState();
 
   sidebarVisible = localStorage.getItem('mdk.sidebarVisible') === '1';
   sidebar.hidden = !sidebarVisible;
@@ -901,6 +938,30 @@
   updateTitleAndStatus();
   updatePreview();
   updateOutline();
+
+  // Abrir un .md por asociación de archivos (doble clic) o desde una segunda
+  // instancia de la app (ya corriendo): el proceso principal ya leyó el
+  // contenido y lo empuja aquí por IPC — ver main.js.
+  if (window.mdk && window.mdk.onOpenFile) {
+    window.mdk.onOpenFile((payload) => {
+      if (payload && payload.filePath) loadFileIntoWorkspace(payload.filePath, payload.content);
+    });
+  }
+
+  // Arrastrar y soltar un .md/.txt sobre la ventana: sin esto, Chromium
+  // navega la ventana entera al archivo soltado (una pantalla en blanco/negra
+  // fuera de la interfaz) en vez de abrirlo como documento.
+  window.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+  });
+  window.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!file || !file.path) return;
+    const ext = (file.name || '').split('.').pop().toLowerCase();
+    if (['md', 'markdown', 'txt'].includes(ext)) openExternalPath(file.path);
+  });
 
   if (window.mdk && window.mdk.getAppVersion) {
     window.mdk.getAppVersion().then((v) => {

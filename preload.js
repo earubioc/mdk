@@ -4,6 +4,7 @@ const STRINGS = require('./src/i18n/strings.js');
 contextBridge.exposeInMainWorld('mdk', {
   // Archivo
   openFile: () => ipcRenderer.invoke('dialog-open'),
+  openPath: (filePath) => ipcRenderer.invoke('read-file-path', filePath),
   saveFile: (content, filePath, saveAs = false) => ipcRenderer.invoke('save-file', { content, filePath, saveAs }),
 
   // Estado (título de ventana, aviso de cambios sin guardar al cerrar)
@@ -21,6 +22,9 @@ contextBridge.exposeInMainWorld('mdk', {
   getLanguage: () => ipcRenderer.invoke('get-language'),
   setLanguage: (lang) => ipcRenderer.send('set-language', lang),
   onLanguageChanged: (callback) => ipcRenderer.on('language-changed', (_evt, lang) => callback(lang)),
+
+  // Apertura de archivo por asociación (.md) / segunda instancia
+  onOpenFile: (callback) => ipcRenderer.on('open-file', (_evt, payload) => callback(payload)),
 
   // Menú -> acciones del renderer
   onMenuAction: (callback) => ipcRenderer.on('menu-action', (_evt, action) => callback(action))

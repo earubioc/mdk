@@ -7,6 +7,41 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## 2.6.0
+
+- Corregido bug importante: las tablas Markdown (`| col | col |` con fila separadora
+  `|---|---|`) no se renderizaban ni en la vista previa ni en el PDF exportado — se
+  mostraban como texto plano con los `|` a la vista. El comentario del parser decía que
+  las tablas ya estaban soportadas ("simple"), pero el código para generarlas nunca se
+  había escrito. Ahora sí se convierten a `<table>` real, con alineación de columnas
+  (`:---`, `---:`, `:---:`).
+- "Abrir reciente" en el menú Archivo: lista los últimos 15 archivos abiertos o guardados
+  (se actualiza sola, sin duplicados, y no muestra archivos que ya no existen en disco).
+  Incluye una opción para limpiar la lista.
+
+## 2.5.1
+
+- El listado de "Novedades" en el panel de información ahora tiene su propio scroll
+  interno (alto máximo, con barra de desplazamiento) en vez de crecer sin límite y
+  empujar el resto del panel fuera de la pantalla a medida que se acumulan versiones.
+
+## 2.5.0
+
+- Corregido bug: hacer doble clic en un `.md` asociado a MDK (o "Abrir con → MDK") abría
+  el programa con un documento en blanco en vez del archivo. Causa: la app nunca leía el
+  argumento de línea de comandos que Windows le pasa con la ruta del archivo. Ahora se lee
+  al arrancar, y si MDK ya está abierto, el archivo se abre como pestaña nueva en la misma
+  ventana (instancia única) en vez de lanzar una segunda ventana del programa.
+- Corregido bug: arrastrar un `.md`/`.txt` sobre la ventana de MDK lo abría en una pantalla
+  en blanco/negra fuera de la interfaz (Chromium navegando al archivo) en vez de cargarlo
+  como documento. Ahora se abre como pestaña nueva, igual que con "Abrir archivo".
+- El instalador ahora registra la asociación de `.md`/`.markdown` con MDK automáticamente
+  (`fileAssociations` en `electron-builder`), con el ícono propio — ya no hace falta
+  asociarlo a mano desde Configuración de Windows.
+- Vista dividida: los botones "Editor" y "Vista previa" ya no son exclusivos entre sí —
+  se pueden encender los dos a la vez para ver el editor y la vista previa lado a lado, en
+  tiempo real. No se puede apagar el único panel que quede visible.
+
 ## 2.4.0
 
 - Ícono propio: marcador `+` de VDC Process Lab (rojo `#C0392B` sobre fondo `#222222`),
