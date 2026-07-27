@@ -153,6 +153,8 @@ const es = {
   'info.footerRights': 'Todos los derechos reservados.',
   'info.closeTitle': 'Cerrar',
 
+  'changelog.2.4.0': 'Ícono propio (marcador + de VDC Process Lab) en el .exe, el instalador y la ventana de la app — ya no aparece como "Electron" al asociar archivos .md.',
+  'changelog.2.3.1': 'Corrección: los botones e interfaz podían mostrar claves de texto en vez de la traducción (por ejemplo "toolbar.previewBtn") en el ejecutable compilado.',
   'changelog.2.3.0': 'Interfaz en español e inglés (detecta el sistema, selector manual), licencia MIT y compilación/publicación automática en GitHub.',
   'changelog.2.2.0': 'Panel de información con estadísticas, desarrollador y novedades en columnas.',
   'changelog.2.1.0': 'Skins: paleta y tipografía personalizables (VDC, Genérico, Océano, Bosque o tu combinación).',
@@ -327,6 +329,8 @@ const en = {
   'info.footerRights': 'All rights reserved.',
   'info.closeTitle': 'Close',
 
+  'changelog.2.4.0': 'Custom icon (VDC Process Lab + mark) on the .exe, the installer, and the app window — no longer shows up as "Electron" when associating .md files.',
+  'changelog.2.3.1': 'Fix: buttons and interface text could show raw translation keys (e.g. "toolbar.previewBtn") instead of the translated text in the compiled executable.',
   'changelog.2.3.0': 'Spanish and English interface (auto-detects the system, manual switch), MIT license, and automatic build/release on GitHub.',
   'changelog.2.2.0': 'Info panel with stats, developer info and what’s new, laid out in columns.',
   'changelog.2.1.0': 'Skins: customizable palette and typography (VDC, Generic, Ocean, Forest, or your own combination).',

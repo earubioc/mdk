@@ -7,6 +7,33 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## 2.4.0
+
+- Ícono propio: marcador `+` de VDC Process Lab (rojo `#C0392B` sobre fondo `#222222`),
+  aplicado al `.exe`, al instalador/desinstalador NSIS y a la ventana de la app en tiempo
+  de ejecución (`build/icon.ico`, 256×256 multi-resolución). Antes MDK usaba el ícono
+  genérico de Electron y Windows lo mostraba como "Electron" (por ejemplo al asociar
+  archivos `.md` desde Configuración → Aplicaciones predeterminadas).
+- Para poder grabar el ícono y el nombre correcto en el `.exe`, se reactivó el paso interno
+  de `electron-builder` que estaba desactivado desde la 2.1.1 (`signAndEditExecutable`).
+  Esto significa que compilar (`npm run dist`) ahora requiere tener activado el "Modo de
+  programador" de Windows, o correr la terminal como Administrador — ver
+  `docs/BUILD-AND-RUN.md`.
+
+## 2.3.1
+
+- Corregido bug crítico: en el ejecutable compilado, toda la interfaz mostraba las claves
+  de traducción en vez del texto (por ejemplo el botón "Vista previa" aparecía como
+  `toolbar.previewBtn`). Causa: `preload.js` necesitaba `require()` para cargar el
+  diccionario `src/i18n/strings.js`, pero desde Electron 20 los procesos de preload corren
+  en modo `sandbox` por defecto, que bloquea el `require()` de archivos propios del
+  proyecto (solo permite un puñado de módulos de Node/Electron). Al fallar esa línea, todo
+  el script de preload se detenía silenciosamente — lo que también podía afectar abrir y
+  guardar archivos, no solo el idioma. Se corrigió agregando `sandbox: false` a la
+  configuración de la ventana en `main.js` (junto con `contextIsolation: true` y
+  `nodeIntegration: false`, que ya estaban activos — sigue siendo la configuración segura
+  recomendada por Electron).
+
 ## 2.3.0
 
 - Interfaz en español e inglés: detecta el idioma del sistema al primer arranque, se puede

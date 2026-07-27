@@ -1,6 +1,6 @@
 {
   "name": "mdk-editor",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "MDK: editor de Markdown simple para Windows, identidad VDC Process Lab",
   "main": "main.js",
   "author": "Edgar A. Rubio C. / VDC Process Lab",
@@ -23,6 +23,7 @@
       "main.js",
       "preload.js",
       "src/**/*",
+      "build/icon.ico",
       "package.json"
     ],
     "directories": {
@@ -30,17 +31,19 @@
     },
     "publish": null,
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         { "target": "portable", "arch": ["x64"] },
         { "target": "nsis", "arch": ["x64"] }
-      ],
-      "signAndEditExecutable": false
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     },
     "portable": {
       "artifactName": "MDK-portable.exe"

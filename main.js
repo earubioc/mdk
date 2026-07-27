@@ -59,10 +59,12 @@ function createWindow() {
     minHeight: 480,
     backgroundColor: '#F4F3F1',
     title: 'MDK',
+    icon: path.join(__dirname, 'build', 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: false,
       spellcheck: true
     }
   });
