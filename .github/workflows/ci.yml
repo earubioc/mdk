@@ -1,0 +1,41 @@
+name: CI
+
+# Validación rápida en cada push/PR: sintaxis de todo el código y un
+# empaquetado "--dir" (app sin comprimir, sin instalador) como humo de
+# integración de electron-builder. No publica nada — eso lo hace release.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar sintaxis de los .js
+        shell: bash
+        run: |
+          for f in main.js preload.js src/renderer.js src/markdown.js src/i18n/strings.js; do
+            node --check "$f"
+          done
+
+      - name: Verificar que package.json sea JSON válido
+        shell: bash
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf-8'))"
+
+      - name: Empaquetado de prueba (sin comprimir, sin instalador)
+        run: npx electron-builder --win --dir

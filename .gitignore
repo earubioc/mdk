@@ -1,0 +1,33 @@
+# Dependencias
+# (package-lock.json SÍ se versiona a propósito: GitHub Actions usa `npm ci`,
+# que necesita el lockfile para builds reproducibles. Ver docs/BUILD-AND-RUN.md.)
+node_modules/
+
+# Artefactos de build
+release/
+dist/
+out/
+
+# Logs y capturas de depuración que no deben viajar con el repo
+*.log
+npm-debug.log*
+Windows PowerShell.txt
+
+# Editor / SO
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Exportaciones de prueba generadas por la app (no son parte del repo)
+README.pdf
+*.pdf
+
+# Variables de entorno locales (por si se agregan credenciales de publicación más adelante)
+.env
+.env.local
+
+# Memoria interna del proyecto — contexto de desarrollo, decisiones, arquitectura.
+# Útil para retomar el proyecto en futuras sesiones, pero no es contenido para el
+# repositorio público (no aporta a alguien que solo quiere usar o compilar MDK).
+CLAUDE.md
+docs/

@@ -1,0 +1,56 @@
+name: Release
+
+# Al pushear un tag "vX.Y.Z" (después de subir la versión en package.json),
+# compila el instalador + la versión portable en un runner de Windows real y
+# los publica automáticamente como GitHub Release, adjuntando los .exe.
+#
+# Flujo para publicar una versión nueva:
+#   1. Actualiza "version" en package.json y agrega la entrada en CHANGELOG.md
+#      (y en src/i18n/strings.js si el changelog mostrado en la app cambió).
+#   2. git commit -am "Release vX.Y.Z"
+#   3. git tag vX.Y.Z
+#   4. git push origin main --tags
+#
+# Este workflow se dispara con el push del tag y hace el resto.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar portable + instalador
+        run: npm run dist
+
+      - name: Publicar GitHub Release con los .exe
+        uses: softprops/action-gh-release@v2
+        with:
+          name: MDK ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            Ver el detalle completo en [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md).
+
+            - **MDK-portable.exe**: se ejecuta directo, sin instalar nada.
+            - **MDK Setup *.exe**: instalador con asistente (accesos directos en Escritorio/Inicio).
+          files: |
+            release/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

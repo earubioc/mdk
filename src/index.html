@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: https://fonts.googleapis.com https://fonts.gstatic.com;">
+<title>MDK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Barra de pestañas: hamburguesa (índice) · pestañas de documentos · abrir/buscar/zoom/oscuro/idioma/info -->
+  <header class="tabbar">
+    <button class="icon-btn" id="sidebarToggle" data-action="toggle-sidebar" data-i18n-title="tabbar.sidebarToggleTitle">
+      <span class="hamburger"><span></span><span></span><span></span></span>
+    </button>
+
+    <div class="tabs" id="tabsList"></div>
+    <button class="icon-btn tab-add" data-action="new-tab" data-i18n-title="tabbar.newTabTitle">+</button>
+
+    <div class="tool-spacer"></div>
+
+    <button class="icon-btn" data-action="open" data-i18n-title="tabbar.openTitle">
+      <svg viewBox="0 0 20 20" width="16" height="16"><path fill="currentColor" d="M2 4.5A1.5 1.5 0 013.5 3h4l1.5 2H16.5A1.5 1.5 0 0118 6.5v8A1.5 1.5 0 0116.5 16h-13A1.5 1.5 0 012 14.5v-10z"/></svg>
+    </button>
+    <button class="icon-btn" data-action="toggle-search" data-i18n-title="tabbar.searchTitle">
+      <svg viewBox="0 0 20 20" width="16" height="16"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="13" y1="13" x2="17.5" y2="17.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+
+    <div class="zoom-group">
+      <button class="icon-btn" data-action="zoom-out" data-i18n-title="tabbar.zoomOutTitle">−</button>
+      <span class="zoom-label" id="zoomLabel">16px</span>
+      <button class="icon-btn" data-action="zoom-in" data-i18n-title="tabbar.zoomInTitle">+</button>
+    </div>
+
+    <button class="icon-btn" id="darkToggle" data-action="toggle-dark" data-i18n-title="tabbar.darkTitle">☾</button>
+    <button class="icon-btn" data-action="show-skins" data-i18n-title="tabbar.skinsTitle">🎨</button>
+    <button class="icon-btn icon-btn--text" id="languageToggle" data-action="toggle-language" data-i18n-title="tabbar.languageTitle">ES</button>
+    <button class="icon-btn" data-action="show-info" data-i18n-title="tabbar.infoTitle">ⓘ</button>
+  </header>
+
+  <!-- Barra de búsqueda, oculta por defecto -->
+  <div class="searchbar" id="searchBar" hidden>
+    <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="search.placeholder">
+    <span class="search-status" id="searchStatus"></span>
+    <button class="icon-btn" data-action="search-prev" data-i18n-title="search.prevTitle">↑</button>
+    <button class="icon-btn" data-action="search-next" data-i18n-title="search.nextTitle">↓</button>
+    <button class="icon-btn" data-action="search-close" data-i18n-title="search.closeTitle">×</button>
+  </div>
+
+  <!-- Barra de formato -->
+  <header class="app-toolbar">
+    <div class="brand">
+      <span class="brand-mark">+</span>
+      <span class="brand-name">MDK</span>
+    </div>
+
+    <div class="tool-group">
+      <button class="tool-btn" data-action="h1" data-i18n-title="toolbar.h1Title">H1</button>
+      <button class="tool-btn" data-action="h2" data-i18n-title="toolbar.h2Title">H2</button>
+      <button class="tool-btn" data-action="h3" data-i18n-title="toolbar.h3Title">H3</button>
+      <button class="tool-btn" data-action="p" data-i18n-title="toolbar.pTitle">¶</button>
+    </div>
+
+    <div class="tool-sep"></div>
+
+    <div class="tool-group">
+      <button class="tool-btn tool-btn--icon" data-action="bold" data-i18n-title="toolbar.boldTitle"><b data-i18n="toolbar.boldGlyph">B</b></button>
+      <button class="tool-btn tool-btn--icon" data-action="italic" data-i18n-title="toolbar.italicTitle"><i data-i18n="toolbar.italicGlyph">I</i></button>
+      <button class="tool-btn tool-btn--icon" data-action="code" data-i18n-title="toolbar.codeTitle">&lt;/&gt;</button>
+    </div>
+
+    <div class="tool-sep"></div>
+
+    <div class="tool-group">
+      <button class="tool-btn" data-action="list" data-i18n-title="toolbar.listTitle">•</button>
+      <button class="tool-btn" data-action="quote" data-i18n-title="toolbar.quoteTitle">"</button>
+      <button class="tool-btn" data-action="link" data-i18n-title="toolbar.linkTitle">🔗</button>
+    </div>
+
+    <div class="tool-sep"></div>
+
+    <div class="tool-group">
+      <button class="tool-btn" data-action="view-editor" data-i18n="toolbar.editorBtn" data-i18n-title="toolbar.editorTitle">Editor</button>
+      <button class="tool-btn" data-action="view-preview" data-i18n="toolbar.previewBtn" data-i18n-title="toolbar.previewTitle">Preview</button>
+    </div>
+
+    <div class="tool-spacer"></div>
+
+    <div class="tool-group">
+      <button class="tool-btn tool-btn--accent" data-action="export-pdf" data-i18n="toolbar.exportPdfBtn" data-i18n-title="toolbar.exportPdfTitle">Export PDF</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar" id="sidebar" hidden>
+      <div class="sidebar-title" data-i18n="sidebar.title">Document outline</div>
+      <div class="outline-list" id="outlineList"></div>
+      <div class="outline-empty" id="outlineEmpty" data-i18n="sidebar.empty">This document has no headings yet.</div>
+    </aside>
+
+    <section class="pane pane--editor">
+      <textarea id="editor" class="editor" spellcheck="true" data-i18n-placeholder="editor.placeholder"></textarea>
+    </section>
+    <section class="pane pane--preview" id="previewPane" hidden>
+      <div id="preview" class="preview"></div>
+    </section>
+  </main>
+
+  <footer class="status-bar">
+    <span id="statusPath">—</span>
+    <span class="status-sep">×</span>
+    <span id="statusCounts">0 · 0</span>
+    <span class="status-spacer"></span>
+    <span id="statusSaved">—</span>
+  </footer>
+
+  <!-- Modal de información del documento -->
+  <div class="modal-overlay" id="infoModal" hidden>
+    <div class="modal-card modal-card--info">
+      <button class="modal-close" data-action="hide-info" data-i18n-title="info.closeTitle">×</button>
+
+      <div class="info-header">
+        <div class="modal-mark">+</div>
+        <div>
+          <div class="modal-title" style="text-align:left;">MDK</div>
+          <div class="modal-version" id="modalVersion">2.3.0</div>
+        </div>
+      </div>
+      <div class="modal-subtitle" style="text-align:left;" data-i18n="info.subtitle">Simple Markdown editor</div>
+
+      <div class="modal-divider"></div>
+
+      <div class="info-columns">
+        <div class="info-col">
+          <div class="modal-section-title" data-i18n="info.statsTitle">Document statistics</div>
+          <div class="modal-row"><span data-i18n="info.words">Words</span><span id="infoWords">0</span></div>
+          <div class="modal-row modal-row--sub"><span data-i18n="info.chars">Characters</span><span id="infoChars">0</span></div>
+          <div class="modal-row"><span data-i18n="info.lines">Lines</span><span id="infoLines">0</span></div>
+          <div class="modal-row"><span data-i18n="info.tokens">Tokens (est.)</span><span id="infoTokens">~0</span></div>
+        </div>
+
+        <div class="info-col">
+          <div class="modal-section-title" data-i18n="info.devTitle">Developer</div>
+          <div class="info-dev-name">Edgar A. Rubio C.</div>
+          <div class="info-dev-org">VDC Process Lab</div>
+          <a class="info-dev-link" href="https://vdcprocesslab.com" target="_blank" rel="noopener">vdcprocesslab.com</a>
+
+          <div class="modal-section-title info-news-title" data-i18n="info.newsTitle">What's new</div>
+          <div class="info-news-list" id="infoNewsList"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">© 2026 VDC Process Lab. <span data-i18n="info.footerRights">All rights reserved.</span></div>
+    </div>
+  </div>
+
+  <!-- Modal de skins / personalización de interfaz -->
+  <div class="modal-overlay" id="skinsModal" hidden>
+    <div class="modal-card modal-card--wide">
+      <button class="modal-close" data-action="hide-skins" data-i18n-title="skins.closeTitle">×</button>
+      <div class="modal-title" style="text-align:left; font-size:16pt;" data-i18n="skins.modalTitle">Customize interface</div>
+      <div class="modal-subtitle" style="text-align:left; margin-bottom: 14px;" data-i18n="skins.modalSubtitle">Choose a skin or build your own color and typography combination.</div>
+
+      <div class="skin-grid" id="skinGrid"></div>
+
+      <div class="modal-divider"></div>
+
+      <div class="modal-section-title" data-i18n="skins.customSectionTitle">Custom</div>
+
+      <div class="skin-field">
+        <label for="customAccent" data-i18n="skins.fieldAccent">Accent color</label>
+        <input type="color" id="customAccent" value="#C0392B">
+      </div>
+      <div class="skin-field">
+        <label for="customDark" data-i18n="skins.fieldText">Text color</label>
+        <input type="color" id="customDark" value="#222222">
+      </div>
+      <div class="skin-field">
+        <label for="customBg" data-i18n="skins.fieldBg">Background color</label>
+        <input type="color" id="customBg" value="#F4F3F1">
+      </div>
+      <div class="skin-field">
+        <label for="customDisplayFont" data-i18n="skins.fieldDisplayFont">Heading font</label>
+        <select id="customDisplayFont">
+          <option value="'Bebas Neue', 'Segoe UI Semibold', Arial, sans-serif">Bebas Neue</option>
+          <option value="'Segoe UI', Arial, sans-serif">Segoe UI</option>
+          <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Courier New', monospace">Courier New</option>
+        </select>
+      </div>
+      <div class="skin-field">
+        <label for="customBodyFont" data-i18n="skins.fieldBodyFont">Body font</label>
+        <select id="customBodyFont">
+          <option value="'Barlow', 'Segoe UI', Arial, sans-serif">Barlow</option>
+          <option value="'Segoe UI', Arial, sans-serif">Segoe UI</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+        </select>
+      </div>
+
+      <div class="skin-actions">
+        <button class="tool-btn" data-action="reset-skin" data-i18n="skins.resetBtn">Reset to VDC</button>
+        <button class="tool-btn tool-btn--accent" data-action="apply-custom-skin" data-i18n="skins.applyBtn">Apply custom</button>
+      </div>
+    </div>
+  </div>
+
+<script src="markdown.js"></script>
+<script src="renderer.js"></script>
+</body>
+</html>
