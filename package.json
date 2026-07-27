@@ -28,6 +28,7 @@
     "directories": {
       "output": "release"
     },
+    "publish": null,
     "win": {
       "target": [
         { "target": "portable", "arch": ["x64"] },
