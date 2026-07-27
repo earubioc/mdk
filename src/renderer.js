@@ -36,6 +36,8 @@
   const editorPane = document.querySelector('.pane--editor');
   const previewPane = document.getElementById('previewPane');
   const preview = document.getElementById('preview');
+  const paneDivider = document.getElementById('paneDivider');
+  const workspace = document.querySelector('.workspace');
   const statusPath = document.getElementById('statusPath');
   const statusCounts = document.getElementById('statusCounts');
   const statusSaved = document.getElementById('statusSaved');
@@ -68,6 +70,7 @@
   // en src/i18n/strings.js (claves "changelog.X.Y.Z"); mantenerlo en sync
   // con CHANGELOG.md en la raíz del proyecto, que tiene el detalle completo.
   const CHANGELOG = [
+    { version: '2.6.1', textKey: 'changelog.2.6.1' },
     { version: '2.6.0', textKey: 'changelog.2.6.0' },
     { version: '2.5.1', textKey: 'changelog.2.5.1' },
     { version: '2.5.0', textKey: 'changelog.2.5.0' },
@@ -300,11 +303,13 @@
 
   // ---------- estado global de la app ----------
 
-  // 'editor' y 'preview' ya no son exclusivos entre sí: cada botón enciende o
-  // apaga su propio panel, y ambos pueden estar visibles a la vez (vista
-  // dividida). Se impide apagar el único panel que quede encendido.
-  let showEditor = true;
-  let showPreview = false;
+  // Tres modos exclusivos: 'editor', 'preview' o 'split' (los dos a la vez).
+  // Un solo botón por modo, un solo clic para pasar de cualquiera a
+  // cualquiera — más simple que dos botones independientes (ver
+  // DECISIONS.md sobre por qué se cambió).
+  let viewMode = localStorage.getItem('mdk.viewMode') || 'editor';
+  if (['editor', 'preview', 'split'].indexOf(viewMode) === -1) viewMode = 'editor';
+  let splitWidth = parseInt(localStorage.getItem('mdk.splitWidth'), 10) || null;
   let sidebarVisible = false;
   let searchVisible = false;
   let darkMode = localStorage.getItem('mdk.darkMode') === '1';
@@ -378,7 +383,7 @@
     editor.value = '';
     renderTabs();
     refreshAll();
-    if (showEditor) editor.focus();
+    if (viewMode === 'editor' || viewMode === 'split') editor.focus();
   }
 
   function closeDocument(id) {
@@ -484,39 +489,75 @@
     replaceRange(start, end, `[${selected}](https://)`);
   }
 
-  // ---------- vista: editor / vista previa (independientes, vista dividida posible) ----------
+  // ---------- vista: editor / vista previa / dividida ----------
 
-  function applyViewState() {
+  function applySplitWidth() {
+    if (viewMode === 'split' && splitWidth) {
+      editorPane.style.flex = '0 0 ' + splitWidth + 'px';
+    } else {
+      editorPane.style.flex = '';
+    }
+  }
+
+  function setViewMode(mode) {
+    viewMode = mode;
+    const showEditor = mode === 'editor' || mode === 'split';
+    const showPreview = mode === 'preview' || mode === 'split';
     editorPane.hidden = !showEditor;
     previewPane.hidden = !showPreview;
-    document.querySelector('[data-action="view-editor"]').classList.toggle('is-active', showEditor);
-    document.querySelector('[data-action="view-preview"]').classList.toggle('is-active', showPreview);
+    paneDivider.hidden = mode !== 'split';
+    document.querySelector('[data-action="view-editor"]').classList.toggle('is-active', mode === 'editor');
+    document.querySelector('[data-action="view-preview"]').classList.toggle('is-active', mode === 'preview');
+    document.querySelector('[data-action="view-split"]').classList.toggle('is-active', mode === 'split');
+    applySplitWidth();
     if (showPreview) updatePreview();
     if (showEditor) editor.focus();
+    localStorage.setItem('mdk.viewMode', mode);
   }
 
-  // Prende/apaga un panel. No permite apagar el único panel visible: siempre
-  // debe quedar al menos uno encendido.
-  function toggleView(view) {
-    if (view === 'editor') {
-      if (showEditor && !showPreview) return;
-      showEditor = !showEditor;
-    } else {
-      if (showPreview && !showEditor) return;
-      showPreview = !showPreview;
-    }
-    applyViewState();
+  // Garantiza que el editor esté visible sin perder la vista previa si ya
+  // estaba encendida (usado por buscar, saltar a un encabezado, etc.).
+  function ensureEditorVisible() {
+    if (viewMode === 'preview') setViewMode('split');
   }
 
-  // Garantiza que un panel esté visible sin apagar el otro (usado por buscar,
-  // saltar al encabezado, etc. — no debe cambiar a vista exclusiva).
-  function ensurePaneVisible(view) {
-    if (view === 'editor' && !showEditor) { showEditor = true; applyViewState(); }
-    if (view === 'preview' && !showPreview) { showPreview = true; applyViewState(); }
+  // Arrastrar la línea divisoria entre Editor y Vista previa (solo activa en
+  // modo 'split'). El ancho se guarda en localStorage y se restaura entre
+  // sesiones.
+  function initPaneDivider() {
+    let dragging = false;
+
+    paneDivider.addEventListener('mousedown', (e) => {
+      if (viewMode !== 'split') return;
+      dragging = true;
+      paneDivider.classList.add('is-dragging');
+      document.body.style.cursor = 'col-resize';
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const rect = workspace.getBoundingClientRect();
+      const sidebarWidth = sidebarVisible ? sidebar.offsetWidth : 0;
+      const minPane = 240;
+      let newWidth = e.clientX - rect.left - sidebarWidth;
+      const maxWidth = rect.width - sidebarWidth - minPane - paneDivider.offsetWidth;
+      newWidth = Math.max(minPane, Math.min(maxWidth, newWidth));
+      splitWidth = newWidth;
+      editorPane.style.flex = '0 0 ' + newWidth + 'px';
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      paneDivider.classList.remove('is-dragging');
+      document.body.style.cursor = '';
+      if (splitWidth) localStorage.setItem('mdk.splitWidth', String(splitWidth));
+    });
   }
 
   function updatePreview() {
-    if (!showPreview) return;
+    if (viewMode !== 'preview' && viewMode !== 'split') return;
     preview.innerHTML = window.MDKMarkdown.render(editor.value);
   }
 
@@ -551,7 +592,7 @@
   }
 
   function jumpToLine(lineIndex) {
-    ensurePaneVisible('editor');
+    ensureEditorVisible();
     const lines = editor.value.split('\n');
     let pos = 0;
     for (let i = 0; i < lineIndex; i++) pos += lines[i].length + 1;
@@ -600,7 +641,7 @@
     }
     if (idx === -1) return;
 
-    ensurePaneVisible('editor');
+    ensureEditorVisible();
     editor.focus();
     editor.selectionStart = idx;
     editor.selectionEnd = idx + term.length;
@@ -694,8 +735,9 @@
       case 'list': toggleLinePrefix(/^\s*[-*+]\s+/, '- '); break;
       case 'quote': toggleLinePrefix(/^\s*>\s?/, '> '); break;
       case 'link': insertLink(); break;
-      case 'view-editor': toggleView('editor'); break;
-      case 'view-preview': toggleView('preview'); break;
+      case 'view-editor': setViewMode('editor'); break;
+      case 'view-preview': setViewMode('preview'); break;
+      case 'view-split': setViewMode('split'); break;
       case 'new-tab': doNewTab(); break;
       case 'close-tab': closeDocument(activeId); break;
       case 'open': doOpen(); break;
@@ -926,11 +968,13 @@
   const firstDoc = createDocument();
   activeId = firstDoc.id;
   renderTabs();
-  applyViewState();
 
   sidebarVisible = localStorage.getItem('mdk.sidebarVisible') === '1';
   sidebar.hidden = !sidebarVisible;
   document.getElementById('sidebarToggle').classList.toggle('is-active', sidebarVisible);
+
+  setViewMode(viewMode);
+  initPaneDivider();
 
   activeSkinId = loadSkinPreference();
   applyDarkMode();

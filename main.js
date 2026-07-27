@@ -254,6 +254,7 @@ function buildMenu() {
       submenu: [
         { label: t('menu.view.editMode'), accelerator: 'CmdOrCtrl+Shift+E', click: () => send('menu-action', 'view-editor') },
         { label: t('menu.view.preview'), accelerator: 'CmdOrCtrl+Shift+V', click: () => send('menu-action', 'view-preview') },
+        { label: t('menu.view.split'), accelerator: 'CmdOrCtrl+Shift+B', click: () => send('menu-action', 'view-split') },
         { type: 'separator' },
         { label: t('menu.view.toggleSidebar'), accelerator: 'CmdOrCtrl+\\', click: () => send('menu-action', 'toggle-sidebar') },
         { label: t('menu.view.darkMode'), accelerator: 'CmdOrCtrl+Shift+D', click: () => send('menu-action', 'toggle-dark') },

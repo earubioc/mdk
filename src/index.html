@@ -84,6 +84,7 @@
     <div class="tool-group">
       <button class="tool-btn" data-action="view-editor" data-i18n="toolbar.editorBtn" data-i18n-title="toolbar.editorTitle">Editor</button>
       <button class="tool-btn" data-action="view-preview" data-i18n="toolbar.previewBtn" data-i18n-title="toolbar.previewTitle">Preview</button>
+      <button class="tool-btn" data-action="view-split" data-i18n="toolbar.splitBtn" data-i18n-title="toolbar.splitTitle">Split</button>
     </div>
 
     <div class="tool-spacer"></div>
@@ -103,17 +104,18 @@
     <section class="pane pane--editor">
       <textarea id="editor" class="editor" spellcheck="true" data-i18n-placeholder="editor.placeholder"></textarea>
     </section>
+    <div class="pane-divider" id="paneDivider" hidden></div>
     <section class="pane pane--preview" id="previewPane" hidden>
       <div id="preview" class="preview"></div>
     </section>
   </main>
 
   <footer class="status-bar">
-    <span id="statusPath">—</span>
+    <span id="statusPath"></span>
     <span class="status-sep">×</span>
     <span id="statusCounts">0 · 0</span>
     <span class="status-spacer"></span>
-    <span id="statusSaved">—</span>
+    <span id="statusSaved"></span>
   </footer>
 
   <!-- Modal de información del documento -->
@@ -125,7 +127,7 @@
         <div class="modal-mark">+</div>
         <div>
           <div class="modal-title" style="text-align:left;">MDK</div>
-          <div class="modal-version" id="modalVersion">2.6.0</div>
+          <div class="modal-version" id="modalVersion">2.6.1</div>
         </div>
       </div>
       <div class="modal-subtitle" style="text-align:left;" data-i18n="info.subtitle">Simple Markdown editor</div>

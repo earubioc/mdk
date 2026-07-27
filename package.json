@@ -1,6 +1,6 @@
 {
   "name": "mdk-editor",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "MDK: editor de Markdown simple para Windows, identidad VDC Process Lab",
   "main": "main.js",
   "author": "Edgar A. Rubio C. / VDC Process Lab",

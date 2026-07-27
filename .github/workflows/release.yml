@@ -46,10 +46,10 @@ jobs:
           name: MDK ${{ github.ref_name }}
           generate_release_notes: true
           body: |
-            Ver el detalle completo en [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md).
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for full details.
 
-            - **MDK-portable.exe**: se ejecuta directo, sin instalar nada.
-            - **MDK Setup *.exe**: instalador con asistente (accesos directos en Escritorio/Inicio).
+            - **MDK-portable.exe**: runs directly, nothing to install.
+            - **MDK Setup *.exe**: installer with a wizard (Desktop/Start Menu shortcuts).
           files: |
             release/*.exe
         env:

@@ -1,4 +1,4 @@
-# MDK — Markdown editor
+# MDK: Markdown editor
 
 *[Leer en español](./README.es.md)*
 
@@ -6,14 +6,14 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6.svg)](#download)
 [![Release](https://img.shields.io/github/v/release/earubioc/mdk?label=release)](../../releases/latest)
 
-**A clean, no-nonsense Markdown editor for Windows — no ads, no paywalled features, no
+**A clean, no-nonsense Markdown editor for Windows: no ads, no paywalled features, no
 account required.** Open and edit `.md`/`.txt`, turn selected lines into headings and
 Markdown structure with one click, and export or print straight to a properly formatted
 PDF. Fully skinnable interface (ships with the VDC Process Lab identity as the default,
 or go fully generic/custom), available in Spanish and English.
 
 Free and open source (MIT) because most Markdown editors out there bury basic formatting
-behind ads or a paid tier — MDK doesn't.
+behind ads or a paid tier. MDK doesn't.
 
 See [`CHANGELOG.md`](./CHANGELOG.md) for the version history.
 
@@ -74,14 +74,14 @@ MDK/
 ├── package.json           # scripts and electron-builder configuration
 ├── LICENSE                 # MIT
 ├── CHANGELOG.md            # version history
-└── manual_para_dummies.md  # no-jargon guide (build, install, associate .md) — Spanish
+└── manual_para_dummies.md  # no-jargon guide (build, install, associate .md), Spanish
 ```
 
 ## Usage
 
 - **Language**: Spanish/English, auto-detects the system language on first launch; switch
   anytime from the ES/EN button or the "Language" menu, no restart needed
-- **Tabs**: multiple documents open at once — new tab (Ctrl+N), close (Ctrl+W)
+- **Tabs**: multiple documents open at once: new tab (Ctrl+N), close (Ctrl+W)
 - **File**: Open (Ctrl+O), Save (Ctrl+S), Save as (Ctrl+Shift+S)
 - **Formatting**: select one or more lines and press H1/H2/H3 in the toolbar (or
   Ctrl+1/2/3) to turn them into a heading (`#`, `##`, `###`); Ctrl+0 reverts to plain text.
@@ -92,13 +92,13 @@ MDK/
 - **Search**: Ctrl+F, next/previous within the search bar
 - **Zoom**: `− 16px +` buttons in the toolbar (Ctrl+= / Ctrl+-)
 - **Dark mode**: ☾ button (Ctrl+Shift+D)
-- **Skins**: 🎨 button — VDC Process Lab, Generic, Ocean, Forest, or a custom skin (your
+- **Skins**: 🎨 button: VDC Process Lab, Generic, Ocean, Forest, or a custom skin (your
   own colors and typography)
-- **Document info**: ⓘ button — words, characters, lines, estimated tokens, and what's new
-- **Export to PDF**: "Export PDF" button or Ctrl+P — saves a `.pdf` with the active skin
+- **Document info**: ⓘ button: words, characters, lines, estimated tokens, and what's new
+- **Export to PDF**: "Export PDF" button or Ctrl+P: saves a `.pdf` with the active skin
 - **Print**: Ctrl+Shift+P opens the native Windows print dialog
 
 ## License
 
-MIT — see [`LICENSE`](./LICENSE). Free to use, copy, modify, and redistribute, including
+MIT, see [`LICENSE`](./LICENSE). Free to use, copy, modify, and redistribute, including
 commercially, with the sole condition of keeping the copyright notice.

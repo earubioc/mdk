@@ -335,14 +335,32 @@ body.dark-mode .tool-btn.is-active { background: #3A2622; border-color: #4A2E28;
 
 .pane { min-width: 0; height: 100%; }
 
-.pane--editor { flex: 1; border-right: 1px solid var(--rule); }
+.pane--editor { flex: 1; border-right: 1px solid var(--rule); min-width: 240px; }
 
 .pane--preview {
   flex: 1;
   background: var(--white);
   overflow-y: auto;
   overflow-x: hidden;
+  min-width: 240px;
 }
+
+/* Línea divisoria arrastrable entre Editor y Vista previa, solo visible y
+   activa en vista dividida (ver toggleView/setViewMode en renderer.js). */
+.pane-divider {
+  width: 6px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: var(--rule);
+  position: relative;
+}
+.pane-divider::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -3px; right: -3px;
+}
+.pane-divider:hover, .pane-divider.is-dragging { background: var(--red); }
 
 .editor {
   width: 100%;
@@ -362,9 +380,7 @@ body.dark-mode .tool-btn.is-active { background: #3A2622; border-color: #4A2E28;
 .editor::placeholder { color: var(--light); }
 
 .preview {
-  max-width: 720px;
   width: 100%;
-  margin: 0 auto;
   padding: 40px 44px;
   font-family: var(--font-body);
   font-weight: 300;

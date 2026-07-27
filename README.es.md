@@ -1,11 +1,11 @@
-# MDK — editor de Markdown
+# MDK: editor de Markdown
 
 *[Read this in English](./README.md)*
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6.svg)](#descargar)
 
-**Editor de Markdown simple y sin fricción para Windows — sin publicidad, sin funciones
+**Editor de Markdown simple y sin fricción para Windows: sin publicidad, sin funciones
 pagas, sin cuenta.** Abre y edita `.md`/`.txt`, convierte líneas seleccionadas en
 encabezados y estructura Markdown con un clic, y exporta o imprime directo a un PDF bien
 formateado. Interfaz totalmente personalizable por skins (incluye la identidad visual de
@@ -13,7 +13,7 @@ VDC Process Lab por defecto, o pásate a un skin genérico o personalizado), dis
 español e inglés (detecta el idioma del sistema).
 
 Gratis y de código abierto (MIT) porque la mayoría de editores de Markdown que existen
-esconden el formato básico detrás de publicidad o un plan pago — MDK no.
+esconden el formato básico detrás de publicidad o un plan pago. MDK no.
 
 Ver [`CHANGELOG.md`](./CHANGELOG.md) para el historial de versiones.
 
@@ -82,7 +82,7 @@ MDK/
 
 - **Idioma**: español/inglés, detecta el idioma del sistema al primer arranque; se puede
   cambiar en cualquier momento desde el botón ES/EN o el menú "Idioma", sin reiniciar
-- **Pestañas**: varios documentos abiertos a la vez — nueva pestaña (Ctrl+N), cerrar
+- **Pestañas**: varios documentos abiertos a la vez: nueva pestaña (Ctrl+N), cerrar
   (Ctrl+W)
 - **Archivo**: Abrir (Ctrl+O), Guardar (Ctrl+S), Guardar como (Ctrl+Shift+S)
 - **Formato**: selecciona una o varias líneas y pulsa H1/H2/H3 en la barra (o Ctrl+1/2/3)
@@ -95,14 +95,14 @@ MDK/
 - **Buscar**: Ctrl+F, siguiente/anterior dentro del buscador
 - **Zoom**: botones `− 16px +` en la barra (Ctrl+= / Ctrl+-)
 - **Modo oscuro**: botón ☾ (Ctrl+Shift+D)
-- **Skins**: botón 🎨 — VDC Process Lab, Genérico, Océano, Bosque, o personalizado
+- **Skins**: botón 🎨: VDC Process Lab, Genérico, Océano, Bosque, o personalizado
   (colores y tipografía propios)
-- **Información del documento**: botón ⓘ — palabras, caracteres, líneas, tokens
+- **Información del documento**: botón ⓘ: palabras, caracteres, líneas, tokens
   estimados, y novedades de la app
-- **Exportar a PDF**: botón "Exportar PDF" o Ctrl+P — guarda un `.pdf` con el skin activo
+- **Exportar a PDF**: botón "Exportar PDF" o Ctrl+P: guarda un `.pdf` con el skin activo
 - **Imprimir**: Ctrl+Shift+P abre el diálogo de impresión nativo de Windows
 
 ## Licencia
 
-MIT — ver [`LICENSE`](./LICENSE). Uso, copia, modificación y redistribución libres,
+MIT, ver [`LICENSE`](./LICENSE). Uso, copia, modificación y redistribución libres,
 incluso comercial, con la única condición de conservar el aviso de copyright.
