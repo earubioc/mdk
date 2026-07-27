@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6.svg)](#download)
-[![Release](https://img.shields.io/github/v/release/YOUR-USERNAME/mdk?label=release)](../../releases/latest)
+[![Release](https://img.shields.io/github/v/release/earubioc/mdk?label=release)](../../releases/latest)
 
 **A clean, no-nonsense Markdown editor for Windows — no ads, no paywalled features, no
 account required.** Open and edit `.md`/`.txt`, turn selected lines into headings and
