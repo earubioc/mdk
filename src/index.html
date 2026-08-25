@@ -36,6 +36,9 @@
 
     <button class="icon-btn" id="darkToggle" data-action="toggle-dark" data-i18n-title="tabbar.darkTitle">☾</button>
     <button class="icon-btn" data-action="show-skins" data-i18n-title="tabbar.skinsTitle">🎨</button>
+    <button class="icon-btn" data-action="show-compare" data-i18n-title="tabbar.compareTitle">
+      <svg viewBox="0 0 20 20" width="16" height="16"><rect x="2" y="3" width="7" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="3" width="7" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+    </button>
     <button class="icon-btn icon-btn--text" id="languageToggle" data-action="toggle-language" data-i18n-title="tabbar.languageTitle">ES</button>
     <button class="icon-btn" data-action="show-info" data-i18n-title="tabbar.infoTitle">ⓘ</button>
   </header>
@@ -127,7 +130,7 @@
         <div class="modal-mark">+</div>
         <div>
           <div class="modal-title" style="text-align:left;">MDK</div>
-          <div class="modal-version" id="modalVersion">2.6.1</div>
+          <div class="modal-version" id="modalVersion">2.8.1</div>
         </div>
       </div>
       <div class="modal-subtitle" style="text-align:left;" data-i18n="info.subtitle">Simple Markdown editor</div>
@@ -208,6 +211,70 @@
         <button class="tool-btn" data-action="reset-skin" data-i18n="skins.resetBtn">Reset to VDC</button>
         <button class="tool-btn tool-btn--accent" data-action="apply-custom-skin" data-i18n="skins.applyBtn">Apply custom</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal selector de comparación: elegir 2 pestañas abiertas -->
+  <div class="modal-overlay" id="compareModal" hidden>
+    <div class="modal-card modal-card--wide">
+      <button class="modal-close" data-action="hide-compare" data-i18n-title="compare.closeTitle">×</button>
+      <div class="modal-title" style="text-align:left; font-size:16pt;" data-i18n="compare.modalTitle">Compare documents</div>
+      <div class="modal-subtitle" style="text-align:left; margin-bottom: 14px;" data-i18n="compare.modalSubtitle">Choose 2 open tabs to view side by side.</div>
+
+      <div class="compare-picker-empty" id="comparePickerEmpty" hidden data-i18n="compare.needTwoTabs">Open at least 2 documents to compare them.</div>
+
+      <div class="compare-picker" id="comparePicker">
+        <div class="skin-field">
+          <label for="compareLeftSelect" data-i18n="compare.fieldLeft">Left document</label>
+          <select id="compareLeftSelect"></select>
+        </div>
+        <div class="skin-field">
+          <label for="compareRightSelect" data-i18n="compare.fieldRight">Right document</label>
+          <select id="compareRightSelect"></select>
+        </div>
+      </div>
+
+      <div class="skin-actions">
+        <button class="tool-btn tool-btn--accent" id="compareStartBtn" data-action="start-compare" data-i18n="compare.startBtn">Start comparing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista de comparación: 2 documentos lado a lado, cada uno con su propio
+       control Editor/Vista previa, y candado opcional de scroll sincronizado. -->
+  <div class="compare-overlay" id="compareOverlay" hidden>
+    <div class="compare-topbar">
+      <button class="icon-btn" data-action="exit-compare" data-i18n-title="compare.exitTitle">
+        <svg viewBox="0 0 20 20" width="16" height="16"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 4l-6 6 6 6"/></svg>
+      </button>
+      <span class="compare-topbar-title" data-i18n="compare.overlayTitle">Comparing documents</span>
+      <div class="tool-spacer"></div>
+      <button class="icon-btn" id="compareSyncBtn" data-action="toggle-compare-sync" data-i18n-title="compare.syncTitle">
+        <svg viewBox="0 0 20 20" width="16" height="16"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M7 9V6.5a3 3 0 016 0V9M5 9h10v7a1 1 0 01-1 1H6a1 1 0 01-1-1V9z"/></svg>
+      </button>
+    </div>
+    <div class="compare-panes">
+      <section class="compare-pane" id="comparePaneLeft">
+        <div class="compare-pane-header">
+          <span class="compare-pane-name" id="compareLeftName"></span>
+          <div class="tool-group">
+            <button class="tool-btn" data-action="compare-left-editor" data-i18n="toolbar.editorBtn">Editor</button>
+            <button class="tool-btn" data-action="compare-left-preview" data-i18n="toolbar.previewBtn">Preview</button>
+          </div>
+        </div>
+        <div class="compare-pane-content" id="compareLeftContent"></div>
+      </section>
+      <div class="pane-divider" id="compareDivider"></div>
+      <section class="compare-pane" id="comparePaneRight">
+        <div class="compare-pane-header">
+          <span class="compare-pane-name" id="compareRightName"></span>
+          <div class="tool-group">
+            <button class="tool-btn" data-action="compare-right-editor" data-i18n="toolbar.editorBtn">Editor</button>
+            <button class="tool-btn" data-action="compare-right-preview" data-i18n="toolbar.previewBtn">Preview</button>
+          </div>
+        </div>
+        <div class="compare-pane-content" id="compareRightContent"></div>
+      </section>
     </div>
   </div>
 

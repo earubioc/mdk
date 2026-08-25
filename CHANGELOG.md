@@ -7,6 +7,50 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## 2.8.1
+
+- Corregido: con el candado de scroll sincronizado activo al comparar documentos, si un
+  documento era bastante más largo que el otro, el largo se desplazaba mucho más rápido que
+  el corto (sincronizaba por % de longitud recorrida, no por líneas). Ahora ambos lados se
+  desplazan la misma cantidad de líneas/píxeles; si uno llega a su final antes que el otro
+  (por ser más corto), simplemente deja de moverse ahí mientras el otro sigue.
+
+## 2.8.0
+
+- Nuevo: comparar 2 documentos abiertos lado a lado (botón ⧉ en la barra superior, menú
+  Ver → "Comparar documentos…", o Ctrl+Shift+C). Se eligen 2 de las pestañas ya abiertas;
+  cada lado tiene su propio control Editor/Vista previa, independiente del otro. Incluye un
+  candado opcional (🔗) para sincronizar el scroll entre los dos paneles. Es una vista de
+  solo lectura (para editar hay que salir de la comparación); Esc o el botón "←" la cierran.
+
+## 2.7.0
+
+- Nuevo: las columnas de las tablas en la vista previa ahora se pueden redimensionar
+  arrastrando el borde entre encabezados. Es puramente visual (no modifica el Markdown
+  fuente ni afecta el PDF exportado) y se reinicia cada vez que la vista previa se vuelve a
+  renderizar (por ejemplo al seguir editando el documento) — pensado como ayuda temporal
+  para inspeccionar una tabla ancha, no como una preferencia persistente.
+
+## 2.6.3
+
+- Corregido bug: el cursor de texto (el "palito" que parpadea, no el puntero del mouse)
+  en el editor a veces se volvía invisible después de escribir unas cuantas palabras —
+  parecía tomar un color blanco sobre el fondo blanco del editor, y solo reaparecía al
+  mover el cursor repetidamente. Causa: el editor nunca fijaba explícitamente el color del
+  cursor de texto (`caret-color`), así que quedaba a criterio del navegador (Chromium)
+  determinarlo, y en ciertas condiciones (probablemente relacionadas con los repintados
+  frecuentes de la vista previa mientras se escribe) lo perdía. Ahora el color del cursor
+  de texto queda fijo, igual al color del texto, así que siempre contrasta con el fondo del
+  editor sea cual sea el skin activo (claro u oscuro).
+
+## 2.6.2
+
+- Corregido bug en el panel "Personalizado" de skins: al elegir un skin preconfigurado
+  (VDC/Genérico/Océano/Bosque) y luego solo ajustar un color en "Personalizado", la
+  fuente de ese skin se aplicaba también sin que el usuario la hubiera elegido a
+  propósito. Ahora elegir un skin preconfigurado solo trae sus colores al panel
+  "Personalizado" como punto de partida — la fuente ya elegida ahí no se toca.
+
 ## 2.6.1
 
 - Corregido: la vista previa tenía un ancho de lectura fijo (720px, centrado) sin importar

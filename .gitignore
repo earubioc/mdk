@@ -31,3 +31,8 @@ README.pdf
 # repositorio público (no aporta a alguien que solo quiere usar o compilar MDK).
 CLAUDE.md
 docs/
+
+# Prompt de arranque para un proyecto FUTURO y separado (PDF→MD local para RAG),
+# guardado aquí solo porque esta era la única carpeta conectada disponible en esa
+# sesión — no tiene relación con el código de MDK, no va al repositorio público.
+pdf-to-md-rag-prompt.md

@@ -70,6 +70,11 @@
   // en src/i18n/strings.js (claves "changelog.X.Y.Z"); mantenerlo en sync
   // con CHANGELOG.md en la raíz del proyecto, que tiene el detalle completo.
   const CHANGELOG = [
+    { version: '2.8.1', textKey: 'changelog.2.8.1' },
+    { version: '2.8.0', textKey: 'changelog.2.8.0' },
+    { version: '2.7.0', textKey: 'changelog.2.7.0' },
+    { version: '2.6.3', textKey: 'changelog.2.6.3' },
+    { version: '2.6.2', textKey: 'changelog.2.6.2' },
     { version: '2.6.1', textKey: 'changelog.2.6.1' },
     { version: '2.6.0', textKey: 'changelog.2.6.0' },
     { version: '2.5.1', textKey: 'changelog.2.5.1' },
@@ -82,6 +87,22 @@
     { version: '2.0.0', textKey: 'changelog.2.0.0' },
     { version: '1.0.0', textKey: 'changelog.1.0.0' }
   ];
+
+  const compareModal = document.getElementById('compareModal');
+  const comparePicker = document.getElementById('comparePicker');
+  const comparePickerEmpty = document.getElementById('comparePickerEmpty');
+  const compareLeftSelect = document.getElementById('compareLeftSelect');
+  const compareRightSelect = document.getElementById('compareRightSelect');
+  const compareStartBtn = document.getElementById('compareStartBtn');
+  const compareOverlay = document.getElementById('compareOverlay');
+  const compareDivider = document.getElementById('compareDivider');
+  const comparePaneLeft = document.getElementById('comparePaneLeft');
+  const comparePaneRight = document.getElementById('comparePaneRight');
+  const compareLeftName = document.getElementById('compareLeftName');
+  const compareRightName = document.getElementById('compareRightName');
+  const compareLeftContent = document.getElementById('compareLeftContent');
+  const compareRightContent = document.getElementById('compareRightContent');
+  const compareSyncBtn = document.getElementById('compareSyncBtn');
 
   const skinsModal = document.getElementById('skinsModal');
   const skinGrid = document.getElementById('skinGrid');
@@ -210,17 +231,27 @@
         activeSkinId = id;
         applySkin(skin);
         saveSkinPreference(id, skin);
-        populateCustomFields(skin);
+        populateCustomColorFields(skin);
         renderSkinGrid();
       });
       skinGrid.appendChild(btn);
     });
   }
 
-  function populateCustomFields(skin) {
+  // Colores y fuente se sincronizan por separado a propósito: elegir un skin
+  // preconfigurado sí debe traer sus colores como punto de partida al panel
+  // "Personalizado", pero NO debe pisar la fuente que el usuario ya tenía
+  // elegida ahí — si no, "Aplicar personalizado" termina aplicando una
+  // fuente que el usuario nunca eligió a propósito, solo por haber mirado
+  // un skin distinto. Ver DECISIONS.md.
+  function populateCustomColorFields(skin) {
     customAccent.value = skin.accent;
     customDark.value = skin.dark;
     customBg.value = skin.bg;
+  }
+
+  function populateCustomFields(skin) {
+    populateCustomColorFields(skin);
     customDisplayFont.value = skin.fontDisplay;
     customBodyFont.value = skin.fontBody;
   }
@@ -314,6 +345,21 @@
   let searchVisible = false;
   let darkMode = localStorage.getItem('mdk.darkMode') === '1';
   let zoomPx = parseInt(localStorage.getItem('mdk.zoomPx'), 10) || 16;
+
+  // Comparar 2 pestañas lado a lado (ver DECISIONS.md): es una vista de solo
+  // lectura sobre 2 documentos ya abiertos, cada lado con su propio modo
+  // Editor/Vista previa, con scroll sincronizable. No comparte estado con el
+  // <textarea> principal — cada lado renderiza su propio contenido a partir
+  // de documents[], nunca escribe en él.
+  let compareMode = false;
+  let compareLeftId = null;
+  let compareRightId = null;
+  let compareLeftView = 'preview';
+  let compareRightView = 'preview';
+  let compareSyncScroll = localStorage.getItem('mdk.compareSyncScroll') === '1';
+  let compareSplitWidth = parseInt(localStorage.getItem('mdk.compareSplitWidth'), 10) || null;
+  let compareSyncing = false; // guarda contra eco infinito al sincronizar scroll
+  let compareLastScrollTop = { left: 0, right: 0 }; // para sincronizar por delta de píxeles, no por porcentaje
 
   // ---------- modelo de documentos (pestañas) ----------
 
@@ -559,6 +605,61 @@
   function updatePreview() {
     if (viewMode !== 'preview' && viewMode !== 'split') return;
     preview.innerHTML = window.MDKMarkdown.render(editor.value);
+    enhanceResizableTables();
+  }
+
+  // Columnas de tabla redimensionables en la vista previa: puramente visual,
+  // no toca el Markdown fuente. Se pierde al volver a renderizar (cada
+  // pulsación de tecla), por diseño — es una ayuda temporal para inspeccionar
+  // una tabla ancha, no una preferencia persistente.
+  function enhanceResizableTables() {
+    const tables = preview.querySelectorAll('table');
+    tables.forEach((table) => {
+      const headerRow = table.querySelector('thead tr');
+      if (!headerRow) return;
+      const ths = Array.from(headerRow.children);
+      if (ths.length < 2) return;
+      // Fija el ancho actual (resultado del reparto automático) como punto de
+      // partida explícito en px, para que arrastrar tenga una base estable.
+      ths.forEach((th) => {
+        th.style.width = th.offsetWidth + 'px';
+      });
+      ths.forEach((th, i) => {
+        if (i === ths.length - 1) return; // el último borde no se arrastra
+        const nextTh = ths[i + 1];
+        const handle = document.createElement('span');
+        handle.className = 'col-resizer';
+        th.appendChild(handle);
+        handle.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const startX = e.clientX;
+          const startLeft = th.offsetWidth;
+          const startRight = nextTh.offsetWidth;
+          const total = startLeft + startRight;
+          const minW = 40;
+          handle.classList.add('is-dragging');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+          function onMove(ev) {
+            const delta = ev.clientX - startX;
+            let newLeft = Math.max(minW, Math.min(total - minW, startLeft + delta));
+            const newRight = total - newLeft;
+            th.style.width = newLeft + 'px';
+            nextTh.style.width = newRight + 'px';
+          }
+          function onUp() {
+            handle.classList.remove('is-dragging');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+          }
+          window.addEventListener('mousemove', onMove);
+          window.addEventListener('mouseup', onUp);
+        });
+      });
+    });
   }
 
   // ---------- índice / estructura del documento ----------
@@ -721,6 +822,180 @@
 
   function hideInfoModal() { infoModal.hidden = true; }
 
+  // ---------- comparar documentos ----------
+
+  function populateComparePicker() {
+    compareLeftSelect.innerHTML = '';
+    compareRightSelect.innerHTML = '';
+    documents.forEach((doc) => {
+      const label = (doc.isDirty ? '● ' : '') + fileBaseName(doc.filePath);
+      const optLeft = document.createElement('option');
+      optLeft.value = String(doc.id);
+      optLeft.textContent = label;
+      compareLeftSelect.appendChild(optLeft);
+      compareRightSelect.appendChild(optLeft.cloneNode(true));
+    });
+    if (documents.length >= 2) {
+      const preselectedLeft = compareLeftId && documents.some((d) => d.id === compareLeftId) ? compareLeftId : activeId;
+      compareLeftSelect.value = String(preselectedLeft);
+      const rightCandidate = (compareRightId && documents.some((d) => d.id === compareRightId) && compareRightId !== preselectedLeft)
+        ? compareRightId
+        : (documents.find((d) => d.id !== preselectedLeft) || documents[0]).id;
+      compareRightSelect.value = String(rightCandidate);
+    }
+  }
+
+  function showCompareModal() {
+    saveEditorIntoActiveDoc();
+    populateComparePicker();
+    const enough = documents.length >= 2;
+    comparePickerEmpty.hidden = enough;
+    comparePicker.hidden = !enough;
+    compareStartBtn.disabled = !enough;
+    compareModal.hidden = false;
+  }
+
+  function hideCompareModal() { compareModal.hidden = true; }
+
+  function fileBaseNameOrUntitled(doc) {
+    return doc ? fileBaseName(doc.filePath) : '';
+  }
+
+  function updateCompareNames() {
+    compareLeftName.textContent = fileBaseNameOrUntitled(documents.find((d) => d.id === compareLeftId));
+    compareRightName.textContent = fileBaseNameOrUntitled(documents.find((d) => d.id === compareRightId));
+  }
+
+  function updateCompareViewButtons() {
+    comparePaneLeft.querySelector('[data-action="compare-left-editor"]').classList.toggle('is-active', compareLeftView === 'editor');
+    comparePaneLeft.querySelector('[data-action="compare-left-preview"]').classList.toggle('is-active', compareLeftView === 'preview');
+    comparePaneRight.querySelector('[data-action="compare-right-editor"]').classList.toggle('is-active', compareRightView === 'editor');
+    comparePaneRight.querySelector('[data-action="compare-right-preview"]').classList.toggle('is-active', compareRightView === 'preview');
+  }
+
+  function updateCompareSyncButton() {
+    compareSyncBtn.classList.toggle('is-active', compareSyncScroll);
+  }
+
+  // Devuelve el elemento que realmente hace scroll en un lado: el <textarea>
+  // (modo Editor) o el propio contenedor (modo Vista previa, igual que
+  // .pane--preview con el editor principal).
+  function getCompareScrollEl(side) {
+    const contentEl = side === 'left' ? compareLeftContent : compareRightContent;
+    const ta = contentEl.querySelector('textarea');
+    return ta || contentEl;
+  }
+
+  // Sincroniza por delta de píxeles (misma cantidad de líneas desplazadas en
+  // ambos lados), no por porcentaje de longitud del documento — con
+  // porcentaje, el documento más largo se desplazaba mucho más rápido que el
+  // corto para llegar al mismo % de scroll. Si un lado llega a su tope antes
+  // que el otro, simplemente deja de moverse ahí (igual que en Bluebeam).
+  function onCompareScroll(side) {
+    const el = getCompareScrollEl(side);
+    const newTop = el.scrollTop;
+    if (!compareSyncScroll || compareSyncing || !compareMode) {
+      compareLastScrollTop[side] = newTop;
+      return;
+    }
+    const delta = newTop - compareLastScrollTop[side];
+    compareLastScrollTop[side] = newTop;
+    if (delta === 0) return;
+    const otherSide = side === 'left' ? 'right' : 'left';
+    const toEl = getCompareScrollEl(otherSide);
+    const toMax = toEl.scrollHeight - toEl.clientHeight;
+    const newToTop = Math.max(0, Math.min(toMax, toEl.scrollTop + delta));
+    compareSyncing = true;
+    toEl.scrollTop = newToTop;
+    compareLastScrollTop[otherSide] = newToTop;
+    requestAnimationFrame(() => { compareSyncing = false; });
+  }
+
+  function renderComparePane(side) {
+    const id = side === 'left' ? compareLeftId : compareRightId;
+    const view = side === 'left' ? compareLeftView : compareRightView;
+    const contentEl = side === 'left' ? compareLeftContent : compareRightContent;
+    const doc = documents.find((d) => d.id === id);
+    contentEl.innerHTML = '';
+    contentEl.classList.remove('preview');
+    if (!doc) return;
+    if (view === 'editor') {
+      const ta = document.createElement('textarea');
+      ta.className = 'editor';
+      ta.readOnly = true;
+      ta.spellcheck = false;
+      ta.value = doc.content;
+      contentEl.appendChild(ta);
+    } else {
+      contentEl.classList.add('preview');
+      contentEl.innerHTML = window.MDKMarkdown.render(doc.content);
+    }
+    contentEl.scrollTop = 0;
+    compareLastScrollTop[side] = 0;
+    getCompareScrollEl(side).addEventListener('scroll', () => onCompareScroll(side));
+  }
+
+  function startCompare() {
+    if (documents.length < 2) return;
+    compareLeftId = Number(compareLeftSelect.value);
+    compareRightId = Number(compareRightSelect.value);
+    hideCompareModal();
+    compareMode = true;
+    compareOverlay.hidden = false;
+    updateCompareNames();
+    updateCompareViewButtons();
+    updateCompareSyncButton();
+    renderComparePane('left');
+    renderComparePane('right');
+    applyCompareSplitWidth();
+  }
+
+  function exitCompare() {
+    compareMode = false;
+    compareOverlay.hidden = true;
+  }
+
+  function toggleCompareSync() {
+    compareSyncScroll = !compareSyncScroll;
+    localStorage.setItem('mdk.compareSyncScroll', compareSyncScroll ? '1' : '0');
+    updateCompareSyncButton();
+  }
+
+  function applyCompareSplitWidth() {
+    if (compareSplitWidth) {
+      comparePaneLeft.style.flex = '0 0 ' + compareSplitWidth + 'px';
+    } else {
+      comparePaneLeft.style.flex = '';
+    }
+  }
+
+  function initCompareDivider() {
+    let dragging = false;
+    compareDivider.addEventListener('mousedown', (e) => {
+      dragging = true;
+      compareDivider.classList.add('is-dragging');
+      document.body.style.cursor = 'col-resize';
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const rect = compareOverlay.querySelector('.compare-panes').getBoundingClientRect();
+      const minPane = 240;
+      let newWidth = e.clientX - rect.left;
+      const maxWidth = rect.width - minPane - compareDivider.offsetWidth;
+      newWidth = Math.max(minPane, Math.min(maxWidth, newWidth));
+      compareSplitWidth = newWidth;
+      comparePaneLeft.style.flex = '0 0 ' + newWidth + 'px';
+    });
+    window.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      compareDivider.classList.remove('is-dragging');
+      document.body.style.cursor = '';
+      if (compareSplitWidth) localStorage.setItem('mdk.compareSplitWidth', String(compareSplitWidth));
+    });
+  }
+
   // ---------- action dispatch ----------
 
   function runAction(action) {
@@ -767,6 +1042,15 @@
         break;
       }
       case 'apply-custom-skin': applyCustomSkin(); break;
+      case 'show-compare': showCompareModal(); break;
+      case 'hide-compare': hideCompareModal(); break;
+      case 'start-compare': startCompare(); break;
+      case 'exit-compare': exitCompare(); break;
+      case 'toggle-compare-sync': toggleCompareSync(); break;
+      case 'compare-left-editor': compareLeftView = 'editor'; renderComparePane('left'); updateCompareViewButtons(); break;
+      case 'compare-left-preview': compareLeftView = 'preview'; renderComparePane('left'); updateCompareViewButtons(); break;
+      case 'compare-right-editor': compareRightView = 'editor'; renderComparePane('right'); updateCompareViewButtons(); break;
+      case 'compare-right-preview': compareRightView = 'preview'; renderComparePane('right'); updateCompareViewButtons(); break;
       default: break;
     }
   }
@@ -785,6 +1069,10 @@
 
   skinsModal.addEventListener('click', (e) => {
     if (e.target === skinsModal) hideSkinsModal();
+  });
+
+  compareModal.addEventListener('click', (e) => {
+    if (e.target === compareModal) hideCompareModal();
   });
 
   searchInput.addEventListener('keydown', (e) => {
@@ -807,6 +1095,8 @@
     if (e.key !== 'Escape') return;
     if (!infoModal.hidden) hideInfoModal();
     if (!skinsModal.hidden) hideSkinsModal();
+    if (!compareModal.hidden) hideCompareModal();
+    if (compareMode) exitCompare();
   });
 
   // ---------- estado, título y contadores ----------
@@ -975,6 +1265,7 @@
 
   setViewMode(viewMode);
   initPaneDivider();
+  initCompareDivider();
 
   activeSkinId = loadSkinPreference();
   applyDarkMode();
