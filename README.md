@@ -51,8 +51,10 @@ The artifacts land in `release/`. To install on another machine you only need to
 the final `.exe` (`MDK Setup X.X.X.exe` or `MDK-portable.exe`); everything else `release/`
 leaves behind (`win-unpacked/`, `.yml`, `.blockmap`) is internal build support. See
 [`manual_para_dummies.md`](./manual_para_dummies.md) for a no-jargon walkthrough (Spanish).
-If `electron-builder` fails with a `winCodeSign` "symbolic link" error, make sure
-`build.win.signAndEditExecutable` is `false` in `package.json`.
+If `electron-builder` fails with a `winCodeSign` "symbolic link" error, enable Windows
+"Developer Mode" (Settings → Privacy & Security → For developers) or run the terminal as
+Administrator — this step signs the `.exe` and stamps MDK's own name/icon onto it, and
+needs one of those two permissions on Windows.
 
 Every push to `main` runs an automatic validation (GitHub Actions,
 `.github/workflows/ci.yml`). Every `vX.Y.Z` tag builds the installer and the portable
@@ -86,7 +88,17 @@ MDK/
 - **Formatting**: select one or more lines and press H1/H2/H3 in the toolbar (or
   Ctrl+1/2/3) to turn them into a heading (`#`, `##`, `###`); Ctrl+0 reverts to plain text.
   Bold (Ctrl+B), italic (Ctrl+I), inline code (Ctrl+E), list (Ctrl+L), quote (Ctrl+Shift+Q)
-- **Editor / Preview**: exclusive modes (Ctrl+Shift+E / Ctrl+Shift+V)
+- **Editor / Preview / Split**: three view modes — Editor only (Ctrl+Shift+E), Preview
+  only (Ctrl+Shift+V), or both side by side (Ctrl+Shift+B), with a draggable divider
+- **Tables**: standard Markdown pipe tables (`| col | col |`) render in the preview and
+  the exported PDF, including column alignment (`:---`, `---:`, `:---:`); in the preview
+  you can also drag column borders to resize them for easier reading (visual only, it
+  doesn't change the file)
+- **Compare documents**: pick 2 open tabs and view them side by side (⧉ button or
+  Ctrl+Shift+C), each side with its own Editor/Preview toggle, with an optional lock to
+  scroll both panels together
+- **Open a file**: double-click a `.md`/`.markdown` file (MDK registers the association on
+  install), drag a file onto the window, or use File → Open recent for your last files
 - **Document outline**: ☰ button shows/hides the heading structure (Ctrl+\); clicking an
   item jumps to that line
 - **Search**: Ctrl+F, next/previous within the search bar

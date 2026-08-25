@@ -52,8 +52,10 @@ compartir el `.exe` final (`MDK Setup X.X.X.exe` o `MDK-portable.exe`); el resto
 archivos que deja `release/` (`win-unpacked/`, `.yml`, `.blockmap`) son soporte interno
 del build. Ver [`manual_para_dummies.md`](./manual_para_dummies.md) para el paso a paso
 sin tecnicismos. Si `electron-builder` falla con un error de "symbolic link" de
-`winCodeSign`, revisa que `build.win.signAndEditExecutable` esté en `false` dentro de
-`package.json`.
+`winCodeSign`, activa el "Modo de programador" de Windows (Configuración → Privacidad y
+seguridad → Para desarrolladores) o corre la terminal como Administrador — ese paso firma
+el `.exe` y le graba el nombre/ícono propio de MDK, y necesita uno de esos dos permisos en
+Windows.
 
 Cada push a `main` corre una validación automática (GitHub Actions, `.github/workflows/ci.yml`).
 Cada tag `vX.Y.Z` compila el instalador y el portable y los publica como GitHub Release
@@ -89,7 +91,19 @@ MDK/
   para convertirlas en encabezado (`#`, `##`, `###`); Ctrl+0 vuelve a texto normal.
   Negrita (Ctrl+B), cursiva (Ctrl+I), código en línea (Ctrl+E), lista (Ctrl+L), cita
   (Ctrl+Shift+Q)
-- **Editor / Vista previa**: modos exclusivos (Ctrl+Shift+E / Ctrl+Shift+V)
+- **Editor / Vista previa / Ambos**: tres modos de vista — solo Editor (Ctrl+Shift+E),
+  solo Vista previa (Ctrl+Shift+V), o los dos lado a lado (Ctrl+Shift+B), con un divisor
+  arrastrable
+- **Tablas**: las tablas Markdown estándar (`| col | col |`) se renderizan en la vista
+  previa y en el PDF exportado, con soporte de alineación (`:---`, `---:`, `:---:`); en la
+  vista previa también puedes arrastrar el borde entre columnas para ajustar su ancho
+  (solo visual, no modifica el archivo)
+- **Comparar documentos**: elige 2 pestañas abiertas y velas lado a lado (botón ⧉ o
+  Ctrl+Shift+C), cada lado con su propio control Editor/Vista previa, con un candado
+  opcional para sincronizar el scroll de ambos paneles
+- **Abrir un archivo**: doble clic en un `.md`/`.markdown` (MDK registra la asociación al
+  instalar), arrastra un archivo a la ventana, o usa Archivo → Abrir reciente para tus
+  últimos archivos
 - **Índice del documento**: botón ☰ muestra/oculta la estructura de encabezados (Ctrl+\);
   clic en un ítem salta a esa línea
 - **Buscar**: Ctrl+F, siguiente/anterior dentro del buscador
