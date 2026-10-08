@@ -79,7 +79,7 @@ archivos generados quedan dentro de una carpeta nueva llamada `release/`, por ej
 
 ```
 D:\IA_WORK\MDK\release\MDK-portable.exe      (versión portable)
-D:\IA_WORK\MDK\release\MDK Setup 1.0.0.exe   (instalador)
+D:\IA_WORK\MDK\release\MDK-Setup-2.9.0.exe      (instalador)
 ```
 
 (el nombre exacto del instalador puede variar un poco según la versión).
@@ -91,14 +91,14 @@ compartir ni tocar**:
 
 | Dentro de `release/` | Qué es | ¿Se comparte? |
 |---|---|---|
-| `MDK Setup X.X.X.exe` | El instalador: un solo archivo, lo abre quien lo va a instalar | ✅ Sí, es el único archivo que necesita la otra persona |
+| `MDK-Setup-X.X.X.exe` | El instalador: un solo archivo, lo abre quien lo va a instalar | ✅ Sí, es el único archivo que necesita la otra persona |
 | `MDK-portable.exe` (si generaste la versión portable) | El programa completo en un solo archivo, sin instalar | ✅ Sí, si preferiste esta opción en vez del instalador |
-| `MDK Setup X.X.X.exe.blockmap` | Metadata para actualizaciones automáticas (no la usamos) | ❌ No hace falta |
+| `MDK-Setup-X.X.X.exe.blockmap` | Metadata para actualizaciones automáticas (la usa el actualizador; se sube sola a GitHub) | ❌ No hace falta compartirla |
 | `builder-debug.yml` / `builder-effective-config.yaml` | Registros internos de cómo se armó el build | ❌ No hace falta |
 | `win-unpacked/` | La app "desarmada" en carpeta (código + `MDK.exe` + todas las `.dll`/`.pak` que necesita): es un paso intermedio que usa electron-builder para construir tanto el portable como el instalador, **no es la versión portable** | ❌ No la compartas: sin instalador ni empaquetado, solo sirve completa y en esa misma carpeta; si quieres algo "portable" de verdad, genera `MDK-portable.exe` con `npm run dist:portable` |
 
-En resumen: **para instalar en otro computador, comparte solo el archivo `MDK Setup
-X.X.X.exe`** (o `MDK-portable.exe` si es lo que generaste). Todo lo demás dentro de
+En resumen: **para instalar en otro computador, comparte solo el archivo `MDK-Setup-X.X.X.exe`
+(o `MDK-portable.exe` si es lo que generaste). Todo lo demás dentro de
 `release/` es soporte interno del proceso de build.
 
 ### Si ves una lluvia de errores que hablan de "symbolic link"
@@ -128,9 +128,9 @@ programa normal" en Windows.
 
 ## Parte 5: "instalar" MDK en Windows
 
-### Opción A: con el instalador (`MDK Setup ....exe`)
+### Opción A: con el instalador (`MDK-Setup-....exe`)
 
-1. Haz doble clic sobre el archivo `MDK Setup ....exe` dentro de `release/`
+1. Haz doble clic sobre el archivo `MDK-Setup-....exe` dentro de `release/`
 2. Windows puede mostrar una advertencia de "Editor desconocido": es normal en apps sin
    firma digital comercial; haz clic en "Más información" → "Ejecutar de todas formas"
 3. Sigue el asistente: puedes elegir la carpeta de instalación (o dejar la que viene por
@@ -196,3 +196,39 @@ npm run dist
 Espera a que termine → entra a la carpeta `release/` → instala o copia el `.exe` que
 prefieras → asocia `.md` con él (Parte 6) → listo, ya tienes tu editor Markdown con
 identidad VDC Process Lab funcionando como cualquier otro programa de Windows.
+
+---
+
+## Publicar una versión nueva (GitHub + actualizaciones + winget)
+
+Se hace una vez por versión, desde PowerShell en la carpeta del proyecto:
+
+```powershell
+cd D:\IA_WORK\MDK
+git add -A
+git status          # revisa que NO aparezcan CLAUDE.md, docs/ ni archivos ajenos
+git commit -m "Release vX.Y.Z: resumen corto"
+git push
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+Al subir el tag, GitHub compila el instalador y el portable solo y los publica en
+**Releases** (tarda unos minutos; míralo en la pestaña *Actions*). Quien tenga MDK
+instalado (no el portable) recibe la actualización automática la próxima vez que lo abra.
+
+### Primera vez en winget (una sola vez)
+
+1. Espera a que el release exista en GitHub.
+2. Instala la herramienta: `winget install wingetcreate`
+3. Corre: `wingetcreate new https://github.com/earubioc/mdk/releases/download/vX.Y.Z/MDK-Setup-X.Y.Z.exe`
+   y responde las preguntas (identificador: `earubioc.MDK`, licencia MIT).
+4. Cuando te lo pida, deja que envíe el PR a Microsoft (te pide un token de GitHub).
+5. Microsoft lo revisa en unos días. Cuando lo aprueben: `winget install earubioc.MDK`.
+
+### Para que winget se actualice solo en las siguientes versiones
+
+En GitHub: *Settings → Developer settings → Personal access tokens (classic)* → crea uno
+con permiso `public_repo`. Luego en el repo: *Settings → Secrets and variables → Actions →
+New repository secret*, nombre `WINGET_TOKEN`, pega el token. Desde ahí, cada tag nuevo
+también envía el PR a winget automáticamente.
