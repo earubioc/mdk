@@ -7,6 +7,18 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## 2.9.0
+
+- Nuevo: actualizaciones automáticas. La versión instalada (instalador) revisa GitHub
+  Releases al abrir, descarga la nueva en segundo plano y pregunta si reiniciar ahora o
+  instalarla al cerrar. La versión portable no se actualiza sola (no puede reemplazarse).
+  Esta es la primera versión con el actualizador: quien tenga una anterior debe instalar
+  la 2.9.0 a mano una vez.
+- Nuevo: instalable con winget (`winget install earubioc.MDK`). El instalador ahora se
+  llama `MDK-Setup-X.X.X.exe` (sin espacios) para que winget lo encuentre estable.
+- Corregido: parpadeos negros ocasionales en pantalla completa (se desactiva la
+  aceleración por GPU, innecesaria para un editor de texto).
+
 ## 2.8.1
 
 - Corregido: con el candado de scroll sincronizado activo al comparar documentos, si un

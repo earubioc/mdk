@@ -1,6 +1,6 @@
 {
   "name": "mdk-editor",
-  "version": "2.8.1",
+  "version": "2.9.0",
   "description": "MDK: editor de Markdown simple para Windows, identidad VDC Process Lab",
   "main": "main.js",
   "author": "Edgar A. Rubio C. / VDC Process Lab",
@@ -8,9 +8,12 @@
   "private": false,
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win portable nsis",
-    "dist:portable": "electron-builder --win portable",
-    "dist:installer": "electron-builder --win nsis"
+    "dist": "electron-builder --win portable nsis --publish never",
+    "dist:portable": "electron-builder --win portable --publish never",
+    "dist:installer": "electron-builder --win nsis --publish never"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
     "electron": "^31.0.0",
@@ -29,7 +32,9 @@
     "directories": {
       "output": "release"
     },
-    "publish": null,
+    "publish": [
+      { "provider": "github", "owner": "earubioc", "repo": "mdk" }
+    ],
     "fileAssociations": [
       {
         "ext": "md",
@@ -56,6 +61,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
+      "artifactName": "MDK-Setup-${version}.exe",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico"
     },

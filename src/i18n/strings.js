@@ -73,6 +73,11 @@ const es = {
   'dialog.filterMarkdownText': 'Markdown / Texto',
   'dialog.filterAllFiles': 'Todos los archivos',
   'dialog.openErrorTitle': 'Error al abrir',
+  'update.title': 'Actualización disponible',
+  'update.message': 'MDK {version} ya está descargado.',
+  'update.detail': 'Reinicia para instalarlo ahora, o se instalará solo la próxima vez que cierres MDK.',
+  'update.restartNow': 'Reiniciar ahora',
+  'update.later': 'Más tarde',
 
   'dialog.saveAsTitle': 'Guardar como',
   'dialog.filterMarkdown': 'Markdown',
@@ -161,6 +166,7 @@ const es = {
   'info.footerRights': 'Todos los derechos reservados.',
   'info.closeTitle': 'Cerrar',
 
+  'changelog.2.9.0': 'Nuevo: actualizaciones automáticas (versión instalada) y disponible vía winget. Corregido: parpadeo negro en pantalla completa.',
   'changelog.2.8.1': 'Corregido: al comparar documentos con el scroll sincronizado, el documento más largo se desplazaba mucho más rápido que el corto (sincronizaba por % de longitud). Ahora ambos se desplazan la misma cantidad de líneas.',
   'changelog.2.8.0': 'Nuevo: comparar 2 documentos abiertos lado a lado (botón ⧉ o Ctrl+Shift+C), cada lado con su propio Editor/Vista previa, y un candado opcional para sincronizar el scroll entre ambos paneles.',
   'changelog.2.7.0': 'Nuevo: las columnas de las tablas en la vista previa ahora se pueden redimensionar arrastrando el borde entre encabezados (solo visual, no modifica el Markdown; se reinicia al volver a editar el documento).',
@@ -277,6 +283,11 @@ const en = {
   'dialog.filterMarkdownText': 'Markdown / Text',
   'dialog.filterAllFiles': 'All files',
   'dialog.openErrorTitle': 'Error opening file',
+  'update.title': 'Update available',
+  'update.message': 'MDK {version} has been downloaded.',
+  'update.detail': 'Restart to install it now, or it will install automatically the next time you close MDK.',
+  'update.restartNow': 'Restart now',
+  'update.later': 'Later',
 
   'dialog.saveAsTitle': 'Save as',
   'dialog.filterMarkdown': 'Markdown',
@@ -365,6 +376,7 @@ const en = {
   'info.footerRights': 'All rights reserved.',
   'info.closeTitle': 'Close',
 
+  'changelog.2.9.0': 'New: automatic updates (installed version) and available via winget. Fixed: black flicker in fullscreen.',
   'changelog.2.8.1': 'Fixed: when comparing documents with scroll sync on, the longer document scrolled much faster than the shorter one (it synced by % of length). Both now move the same number of lines.',
   'changelog.2.8.0': 'New: compare 2 open documents side by side (⧉ button or Ctrl+Shift+C), each side with its own Editor/Preview toggle, and an optional lock to sync scrolling between both panels.',
   'changelog.2.7.0': 'New: table columns in the preview can now be resized by dragging the border between headers (visual only, does not change the Markdown; resets when the document is edited again).',

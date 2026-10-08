@@ -21,8 +21,9 @@ See [`CHANGELOG.md`](./CHANGELOG.md) for the version history.
 
 Go to [Releases](../../releases) and download the latest `.exe`:
 
-- **`MDK Setup X.X.X.exe`**: wizard-based installer (Desktop/Start Menu shortcuts).
-  Recommended for most users.
+- **`MDK-Setup-X.X.X.exe`**: wizard-based installer (Desktop/Start Menu shortcuts).
+  Recommended for most users; it updates itself automatically.
+- **winget**: `winget install earubioc.MDK` (once the package is approved in the winget catalog)
 - **`MDK-portable.exe`**: runs directly, nothing to install.
 
 ## Requirements
@@ -48,7 +49,7 @@ npm run dist:installer    # NSIS installer only (Desktop/Start Menu shortcut)
 ```
 
 The artifacts land in `release/`. To install on another machine you only need to share
-the final `.exe` (`MDK Setup X.X.X.exe` or `MDK-portable.exe`); everything else `release/`
+the final `.exe` (`MDK-Setup-X.X.X.exe` or `MDK-portable.exe`); everything else `release/`
 leaves behind (`win-unpacked/`, `.yml`, `.blockmap`) is internal build support. See
 [`manual_para_dummies.md`](./manual_para_dummies.md) for a no-jargon walkthrough (Spanish).
 If `electron-builder` fails with a `winCodeSign` "symbolic link" error, enable Windows

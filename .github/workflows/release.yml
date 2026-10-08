@@ -24,6 +24,8 @@ permissions:
 jobs:
   build-and-release:
     runs-on: windows-latest
+    env:
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,8 +51,23 @@ jobs:
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for full details.
 
             - **MDK-portable.exe**: runs directly, nothing to install.
-            - **MDK Setup *.exe**: installer with a wizard (Desktop/Start Menu shortcuts).
+            - **MDK-Setup-X.X.X.exe**: installer with a wizard (Desktop/Start Menu shortcuts). Updates itself automatically.
+            - Install via winget: `winget install earubioc.MDK`
           files: |
             release/*.exe
+            release/latest.yml
+            release/*.exe.blockmap
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Envía el PR a microsoft/winget-pkgs con la versión nueva. Requiere el secret
+      # WINGET_TOKEN (PAT clásico con scope public_repo) y que el paquete ya exista
+      # en winget-pkgs (primer envío manual, ver DECISIONS.md #34). Si no hay
+      # secret, se omite sin fallar el release.
+      - name: Publicar en winget
+        if: ${{ env.WINGET_TOKEN != '' }}
+        uses: vedantmgoyal9/winget-releaser@main
+        with:
+          identifier: earubioc.MDK
+          installers-regex: 'MDK-Setup-.*\.exe$'
+          token: ${{ secrets.WINGET_TOKEN }}

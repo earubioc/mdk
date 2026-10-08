@@ -5,6 +5,12 @@ const STRINGS = require('./src/i18n/strings.js');
 
 let mainWindow = null;
 
+// Parpadeo negro en pantalla completa: es un problema conocido de la composición
+// por GPU de Chromium en Windows (ciertos drivers, cambios de modo/monitor).
+// MDK es un editor de texto: el renderizado por software no se nota y elimina
+// el parpadeo. Ver DECISIONS.md #32. Debe llamarse antes de app.whenReady().
+app.disableHardwareAcceleration();
+
 // Con pestañas múltiples, el proceso principal ya no rastrea "el archivo actual":
 // cada pestaña vive en el renderer. Aquí solo guardamos si HAY (en cualquier
 // pestaña) cambios sin guardar, para poder advertir al cerrar la ventana.
@@ -145,6 +151,7 @@ if (!gotSingleInstanceLock) {
 
   app.whenReady().then(() => {
     createWindow();
+    setupAutoUpdater();
     const initialFilePath = extractFilePathFromArgv(process.argv);
     if (initialFilePath) {
       // Esperar a que el renderer haya terminado de cargar (y por lo tanto ya
@@ -152,6 +159,35 @@ if (!gotSingleInstanceLock) {
       mainWindow.webContents.once('did-finish-load', () => openFilePathInRenderer(initialFilePath));
     }
   });
+}
+
+// Actualizaciones automáticas (GitHub Releases vía electron-updater). Solo aplican
+// a la app instalada (NSIS): la versión portable no puede reemplazarse a sí misma,
+// y en desarrollo (npm start) no hay nada que actualizar. Ver DECISIONS.md #33.
+function setupAutoUpdater() {
+  if (!app.isPackaged || process.env.PORTABLE_EXECUTABLE_FILE) return;
+  let autoUpdater;
+  try {
+    ({ autoUpdater } = require('electron-updater'));
+  } catch (err) {
+    return;
+  }
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.on('update-downloaded', (info) => {
+    const answer = dialog.showMessageBoxSync(mainWindow, {
+      type: 'info',
+      buttons: [t('update.restartNow'), t('update.later')],
+      defaultId: 0,
+      cancelId: 1,
+      title: t('update.title'),
+      message: t('update.message').replace('{version}', info.version),
+      detail: t('update.detail')
+    });
+    if (answer === 0) autoUpdater.quitAndInstall();
+  });
+  autoUpdater.on('error', () => { /* sin red o sin releases: se ignora en silencio */ });
+  autoUpdater.checkForUpdates().catch(() => {});
 }
 
 function createWindow() {

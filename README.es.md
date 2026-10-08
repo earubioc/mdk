@@ -21,8 +21,9 @@ Ver [`CHANGELOG.md`](./CHANGELOG.md) para el historial de versiones.
 
 Ir a [Releases](../../releases) y descargar el último `.exe`:
 
-- **`MDK Setup X.X.X.exe`**: instalador con asistente (accesos directos en
-  Escritorio/Inicio). Recomendado para la mayoría de usuarios.
+- **`MDK-Setup-X.X.X.exe`**: instalador con asistente (accesos directos en
+  Escritorio/Inicio). Recomendado; se actualiza solo.
+- **winget**: `winget install earubioc.MDK` (cuando el paquete sea aprobado en el catálogo de winget)
 - **`MDK-portable.exe`**: se ejecuta directo, sin instalar nada.
 
 ## Requisitos
@@ -48,7 +49,7 @@ npm run dist:installer    # solo instalador NSIS (con acceso directo en Escritor
 ```
 
 Los artefactos quedan en `release/`. Para instalar en otro computador solo hace falta
-compartir el `.exe` final (`MDK Setup X.X.X.exe` o `MDK-portable.exe`); el resto de
+compartir el `.exe` final (`MDK-Setup-X.X.X.exe` o `MDK-portable.exe`); el resto de
 archivos que deja `release/` (`win-unpacked/`, `.yml`, `.blockmap`) son soporte interno
 del build. Ver [`manual_para_dummies.md`](./manual_para_dummies.md) para el paso a paso
 sin tecnicismos. Si `electron-builder` falla con un error de "symbolic link" de
