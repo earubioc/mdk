@@ -15,6 +15,15 @@ español e inglés (detecta el idioma del sistema).
 Gratis y de código abierto (MIT) porque la mayoría de editores de Markdown que existen
 esconden el formato básico detrás de publicidad o un plan pago. MDK no.
 
+![MDK: editor y vista previa lado a lado](./site/img/split.png)
+
+<p>
+<img src="./site/img/compare.png" width="49%" alt="Comparar dos documentos">
+<img src="./site/img/skins.png" width="22%" alt="Skins">
+</p>
+
+Sitio web: https://earubioc.github.io/mdk/
+
 Ver [`CHANGELOG.md`](./CHANGELOG.md) para el historial de versiones.
 
 ## Descargar

@@ -213,6 +213,8 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
+**Antes del commit, cambia también `VERSION` en `site/index.html`** (una línea, cerca del final del archivo): es lo que hace que el botón de la página descargue directo el `.exe` de esa versión.
+
 Al subir el tag, GitHub compila el instalador y el portable solo y los publica en
 **Releases** (tarda unos minutos; míralo en la pestaña *Actions*). Quien tenga MDK
 instalado (no el portable) recibe la actualización automática la próxima vez que lo abra.

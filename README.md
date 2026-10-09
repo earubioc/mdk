@@ -15,6 +15,15 @@ or go fully generic/custom), available in Spanish and English.
 Free and open source (MIT) because most Markdown editors out there bury basic formatting
 behind ads or a paid tier. MDK doesn't.
 
+![MDK: editor and live preview side by side](./site/img/split.png)
+
+<p>
+<img src="./site/img/compare.png" width="49%" alt="Compare two documents">
+<img src="./site/img/skins.png" width="22%" alt="Skins">
+</p>
+
+Website: https://earubioc.github.io/mdk/
+
 See [`CHANGELOG.md`](./CHANGELOG.md) for the version history.
 
 ## Download

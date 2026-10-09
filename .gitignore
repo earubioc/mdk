@@ -36,3 +36,6 @@ docs/
 # guardado aquí solo porque esta era la única carpeta conectada disponible en esa
 # sesión — no tiene relación con el código de MDK, no va al repositorio público.
 pdf-to-md-rag-prompt.md
+
+# Referencia de diseño copiada del proyecto SAGES (no pertenece a MDK)
+index-SAGES.html
