@@ -122,6 +122,13 @@ body.dark-mode .icon-btn.is-active { background: #3A2622; }
 
 .tab:hover { background: var(--bg); }
 
+/* Reordenar pestañas arrastrando: la que se arrastra se atenúa y una línea roja marca dónde cae. */
+.tab.is-dragging { opacity: .45; }
+.tab.drop-before { box-shadow: inset 3px 0 0 var(--red); }
+.tab.drop-after { box-shadow: inset -3px 0 0 var(--red); }
+.tab.is-active.drop-before { box-shadow: inset 3px 0 0 var(--red), inset 0 -2px 0 var(--red); }
+.tab.is-active.drop-after { box-shadow: inset -3px 0 0 var(--red), inset 0 -2px 0 var(--red); }
+
 .tab.is-active {
   background: var(--bg);
   color: var(--dark);
@@ -382,6 +389,41 @@ body.dark-mode .tool-btn.is-active { background: #3A2622; border-color: #4A2E28;
 
 .editor::placeholder { color: var(--light); }
 
+/* Skin "Lectura": textura de papel sutil (ruido SVG, sin archivos de imagen). Solo en modo claro. */
+html[data-texture="paper"] body:not(.dark-mode) .editor,
+html[data-texture="paper"] body:not(.dark-mode) .pane--preview,
+html[data-texture="paper"] body:not(.dark-mode) .compare-pane-content {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36  0 0 0 0 .26  0 0 0 0 .14  0 0 0 .13 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* Modo matemático: MathML nativo de Chromium (convertidor propio en math.js) */
+.preview math, .compare-pane-content math { font-family: 'Cambria Math', 'Latin Modern Math', 'STIX Two Math', serif; font-size: 1.08em; }
+math mtd { padding: 0.2em 0.6em; }
+.math-block { text-align: center; margin: 14px 0; overflow-x: auto; overflow-y: hidden; }
+.math-error { color: var(--red); }
+
+/* Vista "Hoja": el panel de vista previa se muestra como una hoja de papel con
+   el tamaño y márgenes configurados (Página…). Los saltos de página son
+   aproximados (línea punteada cada alto de hoja); el PDF los calcula exactos. */
+.pane--sheet { background: #8a8a8a; overflow-x: auto; }
+body.dark-mode .pane--sheet { background: #1b1b1b; }
+.preview.preview--sheet {
+  --dark: #222; --mid: #444; --light: #777; --rule: #ddd; --bg: #f4f3f1; --white: #fff;
+  box-sizing: border-box;
+  width: var(--sheet-w);
+  min-height: var(--sheet-h);
+  margin: 24px auto;
+  padding: var(--mt) var(--mr) var(--mb) var(--ml);
+  background-color: #fff;
+  color: #444;
+  font-size: 11pt;
+  box-shadow: 0 2px 10px rgba(0,0,0,.35);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--sheet-h) - 1px), rgba(192,57,43,.45) calc(var(--sheet-h) - 1px), rgba(192,57,43,.45) var(--sheet-h));
+}
+.preview.preview--sheet { overflow: hidden; }
+.preview.preview--sheet table { width: 100%; max-width: 100%; }
+html[data-texture="paper"] body:not(.dark-mode) .pane--sheet { background-image: none; }
+
 .preview {
   width: 100%;
   padding: 40px 44px;
@@ -637,7 +679,8 @@ body.dark-mode .info-news-list::-webkit-scrollbar-thumb { background: #4A2E28; }
   color: var(--mid);
 }
 
-.skin-field select {
+.skin-field input[type="number"] { width: 70px; }
+.skin-field select, .skin-field input[type="number"] {
   font-family: var(--font-body);
   font-size: 9pt;
   color: var(--dark);

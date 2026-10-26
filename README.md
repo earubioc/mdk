@@ -32,6 +32,7 @@ Go to [Releases](../../releases) and download the latest `.exe`:
 
 - **`MDK-Setup-X.X.X.exe`**: wizard-based installer (Desktop/Start Menu shortcuts).
   Recommended for most users; it updates itself automatically.
+- **Microsoft Store**: [mdk Markdown Editor](https://apps.microsoft.com/detail/9PKLBD74P3J7) (signed by Microsoft, updated through the Store)
 - **winget**: `winget install earubioc.MDK` (once the package is approved in the winget catalog)
 - **`MDK-portable.exe`**: runs directly, nothing to install.
 
@@ -93,7 +94,7 @@ MDK/
 
 - **Language**: Spanish/English, auto-detects the system language on first launch; switch
   anytime from the ES/EN button or the "Language" menu, no restart needed
-- **Tabs**: multiple documents open at once: new tab (Ctrl+N), close (Ctrl+W)
+- **Tabs**: multiple documents open at once: new tab (Ctrl+N), close (Ctrl+W), reorder by dragging; closing a tab with changes asks Save / Don't save / Cancel
 - **File**: Open (Ctrl+O), Save (Ctrl+S), Save as (Ctrl+Shift+S)
 - **Formatting**: select one or more lines and press H1/H2/H3 in the toolbar (or
   Ctrl+1/2/3) to turn them into a heading (`#`, `##`, `###`); Ctrl+0 reverts to plain text.
@@ -114,11 +115,13 @@ MDK/
 - **Search**: Ctrl+F, next/previous within the search bar
 - **Zoom**: `− 16px +` buttons in the toolbar (Ctrl+= / Ctrl+-)
 - **Dark mode**: ☾ button (Ctrl+Shift+D)
-- **Skins**: 🎨 button: VDC Process Lab, Generic, Ocean, Forest, or a custom skin (your
+- **Skins**: 🎨 button: VDC Process Lab, Generic, Ocean, Forest, Reading (cream paper, serif), or a custom skin (your
   own colors and typography)
 - **Document info**: ⓘ button: words, characters, lines, estimated tokens, and what's new
 - **Export to PDF**: "Export PDF" button or Ctrl+P: saves a `.pdf` with the active skin
 - **Print**: Ctrl+Shift+P opens the native Windows print dialog
+- **Page setup**: "Page…" button: paper size (Letter, Oficio, Legal, A4, A5, A3), orientation and margins, used by PDF export and printing; the "Sheet" button previews the document as a sheet of that size
+- **Math**: LaTeX formulas inline (`$E=mc^2$`) and as blocks (`$$ ... $$`), rendered as equations in the preview, comparison and PDF (built-in converter; covers fractions, roots, sums, integrals, matrices and more)
 
 ## License
 

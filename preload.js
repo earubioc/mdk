@@ -10,10 +10,12 @@ contextBridge.exposeInMainWorld('mdk', {
   // Estado (título de ventana, aviso de cambios sin guardar al cerrar)
   setDirty: (dirty) => ipcRenderer.send('set-dirty', dirty),
   setTitle: (title) => ipcRenderer.send('set-title', title),
+  quitNow: () => ipcRenderer.send('quit-now'),
+  confirmCloseTab: (name) => ipcRenderer.invoke('confirm-close-tab', name),
 
   // Exportar / imprimir
-  exportPdf: (html, suggestedName) => ipcRenderer.invoke('export-pdf', { html, suggestedName }),
-  printNative: (html) => ipcRenderer.invoke('print-native', { html }),
+  exportPdf: (html, suggestedName, page) => ipcRenderer.invoke('export-pdf', { html, suggestedName, page }),
+  printNative: (html, page) => ipcRenderer.invoke('print-native', { html, page }),
   showItemInFolder: (filePath) => ipcRenderer.invoke('show-item-in-folder', filePath),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 

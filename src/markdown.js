@@ -31,10 +31,28 @@
     return cells.every((c) => /^:?-{1,}:?$/.test(c));
   }
 
+  // Matemática: usa MDKMath (src/math.js) si está cargado. Si la fórmula no se
+  // puede interpretar, se muestra el texto original en un <code> marcado.
+  function mathHtml(tex, display) {
+    const g = typeof window !== 'undefined' ? window : globalThis;
+    const conv = g.MDKMath && g.MDKMath.toMathML(tex, display);
+    if (conv) return conv;
+    const delim = display ? '$$' : '$';
+    return `<code class="math-error">${escapeHtml(delim + tex + delim)}</code>`;
+  }
+
   function renderInline(text) {
-    let out = escapeHtml(text);
-    // inline code first so its contents are not touched by other rules
-    out = out.replace(/`([^`]+)`/g, (_m, code) => `<code>${code}</code>`);
+    // Código y fórmulas se apartan en marcadores antes de aplicar el resto de
+    // reglas (así '*' o '_' dentro de una fórmula no se vuelven cursiva) y se
+    // restauran al final.
+    const stash = [];
+    const keep = (html) => { stash.push(html); return '\u0000' + (stash.length - 1) + '\u0000'; };
+    let src = String(text).replace(/`([^`]+)`/g, (_m, code) => keep(`<code>${escapeHtml(code)}</code>`));
+    // $$...$$ en línea, y $...$ (sin espacio pegado a los $ y sin dígito justo después del cierre: "$5 y $10" no es fórmula)
+    src = src.replace(/\$\$([^$]+?)\$\$/g, (_m, tex) => keep(mathHtml(tex, true)));
+    src = src.replace(/(^|[^\\$])\$(?=\S)([^$]*?\S)\$(?!\d)/g, (_m, pre, tex) => pre + keep(mathHtml(tex, false)));
+    src = src.replace(/\\\$/g, keep('$'));
+    let out = escapeHtml(src);
     // bold
     out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     out = out.replace(/__([^_]+)__/g, '<strong>$1</strong>');
@@ -46,7 +64,7 @@
       const safeUrl = url.replace(/"/g, '%22');
       return `<a href="${safeUrl}" target="_blank" rel="noopener">${txt}</a>`;
     });
-    return out;
+    return out.replace(/\u0000(\d+)\u0000/g, (_m, n) => stash[Number(n)]);
   }
 
   function render(src) {
@@ -103,6 +121,36 @@
         flushList();
         i++;
         continue;
+      }
+
+      // bloque matemático: $$ ... $$ (en una línea o en varias)
+      if (/^\s*\$\$/.test(line)) {
+        const one = line.match(/^\s*\$\$(.+?)\$\$\s*$/);
+        let tex = null;
+        if (one) {
+          tex = one[1];
+          i++;
+        } else {
+          const first = line.replace(/^\s*\$\$/, '');
+          const buf = [];
+          let j = i + 1, closed = false;
+          if (/\$\$\s*$/.test(first)) { buf.push(first.replace(/\$\$\s*$/, '')); closed = true; }
+          else {
+            if (first.trim()) buf.push(first);
+            while (j < lines.length) {
+              if (/\$\$\s*$/.test(lines[j])) { buf.push(lines[j].replace(/\$\$\s*$/, '')); closed = true; j++; break; }
+              buf.push(lines[j]);
+              j++;
+            }
+          }
+          if (closed) { tex = buf.join('\n'); i = closed && /\$\$\s*$/.test(first) ? i + 1 : j; }
+        }
+        if (tex !== null) {
+          flushParagraph();
+          flushList();
+          html.push('<div class="math-block">' + mathHtml(tex.trim(), true) + '</div>');
+          continue;
+        }
       }
 
       // headings

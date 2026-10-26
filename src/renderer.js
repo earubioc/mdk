@@ -70,6 +70,7 @@
   // en src/i18n/strings.js (claves "changelog.X.Y.Z"); mantenerlo en sync
   // con CHANGELOG.md en la raíz del proyecto, que tiene el detalle completo.
   const CHANGELOG = [
+    { version: '3.0.0', textKey: 'changelog.3.0.0' },
     { version: '2.9.0', textKey: 'changelog.2.9.0' },
     { version: '2.8.1', textKey: 'changelog.2.8.1' },
     { version: '2.8.0', textKey: 'changelog.2.8.0' },
@@ -159,6 +160,19 @@
       fontCondensed: "'Barlow Condensed', 'Segoe UI Semibold', Arial, sans-serif",
       fontBody: "'Barlow', 'Segoe UI', Arial, sans-serif",
       fontMono: "'Consolas', monospace"
+    },
+    // Modo lectura: papel crema, texto marrón y tipografía con serifa (fuentes del sistema, sin descargas).
+    // `texture: 'paper'` activa una textura sutil por CSS (ver style.css, html[data-texture="paper"]).
+    reading: {
+      labelKey: 'skins.reading.label',
+      hintKey: 'skins.reading.hint',
+      texture: 'paper',
+      accent: '#9A4F2E', dark: '#3B2A1E', mid: '#5C4636', light: '#8F7860',
+      rule: '#DCCBA8', bg: '#EBDDBF', white: '#F7EEDA',
+      fontDisplay: "Georgia, 'Palatino Linotype', 'Book Antiqua', serif",
+      fontCondensed: "Georgia, 'Palatino Linotype', 'Book Antiqua', serif",
+      fontBody: "'Palatino Linotype', 'Book Antiqua', Georgia, serif",
+      fontMono: "'Consolas', 'Courier New', monospace"
     }
   };
 
@@ -177,6 +191,8 @@
     root.setProperty('--font-condensed', skin.fontCondensed);
     root.setProperty('--font-body', skin.fontBody);
     root.setProperty('--font-mono', skin.fontMono);
+    // Textura opcional del skin (solo "Lectura"); los skins sin textura la quitan.
+    document.documentElement.dataset.texture = skin.texture || '';
     currentSkin = skin;
   }
 
@@ -232,7 +248,7 @@
         activeSkinId = id;
         applySkin(skin);
         saveSkinPreference(id, skin);
-        populateCustomColorFields(skin);
+        populateCustomFields(skin);
         renderSkinGrid();
       });
       skinGrid.appendChild(btn);
@@ -251,10 +267,26 @@
     customBg.value = skin.bg;
   }
 
+  // Si el skin activo usa una pila de fuentes que no está entre las opciones
+  // del selector (p. ej. la serifa de "Lectura"), se agrega como opción en vez
+  // de dejar el selector en otra fuente: si no, "Aplicar personalizado" la
+  // reemplaza sin que el usuario lo haya pedido.
+  function setSelectValue(sel, value) {
+    let found = Array.from(sel.options).some((o) => o.value === value);
+    if (!found) {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value.split(',')[0].replace(/['"]/g, '').trim();
+      opt.dataset.dynamic = '1';
+      sel.appendChild(opt);
+    }
+    sel.value = value;
+  }
+
   function populateCustomFields(skin) {
     populateCustomColorFields(skin);
-    customDisplayFont.value = skin.fontDisplay;
-    customBodyFont.value = skin.fontBody;
+    setSelectValue(customDisplayFont, skin.fontDisplay);
+    setSelectValue(customBodyFont, skin.fontBody);
   }
 
   function showSkinsModal() {
@@ -270,20 +302,26 @@
     // fondo elegidos, para no obligar al usuario a escoger siete colores.
     const dark = customDark.value;
     const bg = customBg.value;
+    // Parte del skin activo: si el usuario no tocó texto/fondo, conserva sus
+    // tonos exactos (mid/light/rule/white) y su textura (p. ej. "Lectura").
+    const base = currentSkin || SKINS.vdc;
+    const sameBg = bg.toLowerCase() === String(base.bg).toLowerCase();
+    const sameDark = dark.toLowerCase() === String(base.dark).toLowerCase();
     const custom = {
       labelKey: 'skins.custom.label',
       hintKey: 'skins.custom.hint',
       accent: customAccent.value,
       dark,
-      mid: mixHex(dark, '#808080', 0.35),
-      light: mixHex(dark, '#FFFFFF', 0.55),
-      rule: mixHex(bg, '#000000', 0.12),
+      mid: sameDark ? base.mid : mixHex(dark, '#808080', 0.35),
+      light: sameDark ? base.light : mixHex(dark, '#FFFFFF', 0.55),
+      rule: sameBg ? base.rule : mixHex(bg, '#000000', 0.12),
       bg,
-      white: '#FFFFFF',
+      white: sameBg ? base.white : '#FFFFFF',
+      texture: sameBg ? base.texture : undefined,
       fontDisplay: customDisplayFont.value,
-      fontCondensed: customBodyFont.value,
+      fontCondensed: customDisplayFont.value === base.fontDisplay ? base.fontCondensed : customBodyFont.value,
       fontBody: customBodyFont.value,
-      fontMono: "'Consolas', 'Courier New', monospace"
+      fontMono: base.fontMono || "'Consolas', 'Courier New', monospace"
     };
     activeSkinId = 'custom';
     applySkin(custom);
@@ -409,8 +447,52 @@
       tab.appendChild(name);
       tab.appendChild(closeBtn);
       tab.addEventListener('click', () => switchToDocument(doc.id));
+
+      // Reordenar arrastrando. El tipo propio evita confundirlo con arrastrar un archivo desde el Explorador.
+      tab.draggable = true;
+      tab.addEventListener('dragstart', (e) => {
+        draggedTabId = doc.id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData(TAB_DRAG_TYPE, String(doc.id));
+        tab.classList.add('is-dragging');
+      });
+      tab.addEventListener('dragover', (e) => {
+        if (draggedTabId === null || draggedTabId === doc.id) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const r = tab.getBoundingClientRect();
+        const after = e.clientX > r.left + r.width / 2;
+        tab.classList.toggle('drop-before', !after);
+        tab.classList.toggle('drop-after', after);
+      });
+      tab.addEventListener('dragleave', () => tab.classList.remove('drop-before', 'drop-after'));
+      tab.addEventListener('drop', (e) => {
+        if (draggedTabId === null) return;
+        e.preventDefault();
+        const r = tab.getBoundingClientRect();
+        moveTab(draggedTabId, doc.id, e.clientX > r.left + r.width / 2);
+      });
+      tab.addEventListener('dragend', () => {
+        draggedTabId = null;
+        tabsList.querySelectorAll('.tab').forEach((x) => x.classList.remove('is-dragging', 'drop-before', 'drop-after'));
+      });
       tabsList.appendChild(tab);
     });
+  }
+
+  const TAB_DRAG_TYPE = 'application/x-mdk-tab';
+  let draggedTabId = null;
+
+  // Mueve la pestaña `fromId` antes o después de `toId`. No cambia la pestaña activa ni el contenido.
+  function moveTab(fromId, toId, placeAfter) {
+    const from = documents.findIndex((d) => d.id === fromId);
+    if (from === -1 || fromId === toId) return;
+    const [moved] = documents.splice(from, 1);
+    let to = documents.findIndex((d) => d.id === toId);
+    if (to === -1) { documents.splice(from, 0, moved); return; }
+    documents.splice(placeAfter ? to + 1 : to, 0, moved);
+    draggedTabId = null;
+    renderTabs();
   }
 
   function switchToDocument(id) {
@@ -433,18 +515,33 @@
     if (viewMode === 'editor' || viewMode === 'split') editor.focus();
   }
 
-  function closeDocument(id) {
-    const idx = documents.findIndex((d) => d.id === id);
-    if (idx === -1) return;
-    const doc = documents[idx];
+  let closingTab = false; // evita abrir dos diálogos si se pulsa la X dos veces seguidas
+
+  async function closeDocument(id) {
+    if (closingTab) return;
+    let doc = documents.find((d) => d.id === id);
+    if (!doc) return;
     if (doc.id === activeId) saveEditorIntoActiveDoc();
 
     if (doc.isDirty) {
-      const name = fileBaseName(doc.filePath);
-      const ok = window.confirm(t('confirm.closeTabDirty', { name }));
-      if (!ok) return;
+      closingTab = true;
+      try {
+        const choice = await window.mdk.confirmCloseTab(fileBaseName(doc.filePath));
+        if (choice === 'cancel') return;
+        if (choice === 'save') {
+          // doSave guarda la pestaña activa: se activa primero la que se va a cerrar.
+          if (doc.id !== activeId) switchToDocument(doc.id);
+          const saved = await doSave(false);
+          if (!saved) return; // canceló el diálogo "Guardar como": la pestaña sigue abierta
+        }
+      } finally {
+        closingTab = false;
+      }
     }
 
+    const idx = documents.findIndex((d) => d.id === id);
+    if (idx === -1) return;
+    doc = documents[idx];
     documents.splice(idx, 1);
     if (documents.length === 0) {
       const fresh = createDocument();
@@ -758,8 +855,18 @@
 
   function applyZoom() {
     editor.style.fontSize = zoomPx + 'px';
-    preview.style.fontSize = Math.round(zoomPx * 0.94) + 'px';
-    zoomLabel.textContent = zoomPx + 'px';
+    if (sheetMode) {
+      // En vista Hoja el texto mide siempre lo mismo que en el PDF (11 pt) y el
+      // zoom amplía la hoja completa, como un visor de páginas: lo que ves es
+      // lo que se exporta, solo que más grande o más pequeño.
+      preview.style.fontSize = '';
+      preview.style.zoom = String(zoomPx / 16);
+      zoomLabel.textContent = Math.round(zoomPx / 16 * 100) + '%';
+    } else {
+      preview.style.zoom = '';
+      preview.style.fontSize = Math.round(zoomPx * 0.94) + 'px';
+      zoomLabel.textContent = zoomPx + 'px';
+    }
     localStorage.setItem('mdk.zoomPx', String(zoomPx));
   }
 
@@ -1014,6 +1121,9 @@
       case 'view-editor': setViewMode('editor'); break;
       case 'view-preview': setViewMode('preview'); break;
       case 'view-split': setViewMode('split'); break;
+      case 'toggle-sheet': toggleSheet(); break;
+      case 'show-page': showPageModal(); break;
+      case 'hide-page': hidePageModal(); break;
       case 'new-tab': doNewTab(); break;
       case 'close-tab': closeDocument(activeId); break;
       case 'open': doOpen(); break;
@@ -1021,6 +1131,7 @@
       case 'save-as': doSave(true); break;
       case 'export-pdf': doExportPdf(); break;
       case 'print': doPrintNative(); break;
+      case 'save-all-and-quit': saveAllAndQuit(); break;
       case 'toggle-sidebar': toggleSidebar(); break;
       case 'toggle-search': toggleSearch(); break;
       case 'search-next': findNext(1); break;
@@ -1096,6 +1207,7 @@
     if (e.key !== 'Escape') return;
     if (!infoModal.hidden) hideInfoModal();
     if (!skinsModal.hidden) hideSkinsModal();
+    if (!pageModal.hidden) hidePageModal();
     if (!compareModal.hidden) hideCompareModal();
     if (compareMode) exitCompare();
   });
@@ -1194,9 +1306,110 @@
     return true;
   }
 
+  // Guardar todos los documentos modificados (al cerrar la ventana) y salir.
+  // Si el usuario cancela algún "Guardar como", no se cierra nada.
+  async function saveAllAndQuit() {
+    const dirtyIds = documents.filter((d) => d.isDirty).map((d) => d.id);
+    for (const id of dirtyIds) {
+      if (id !== activeId) switchToDocument(id);
+      const ok = await doSave(false);
+      if (!ok) return;
+    }
+    window.mdk.quitNow();
+  }
+
+  // ---------- configuración de página (vista Hoja, PDF e impresión) ----------
+
+  const PAGE_SIZES = { letter: [215.9, 279.4], oficio: [215.9, 330.2], legal: [215.9, 355.6], a4: [210, 297], a5: [148, 210], a3: [297, 420] };
+  const MARGIN_PRESETS = { normal: [22, 20, 22, 20], narrow: [10, 10, 10, 10], wide: [30, 30, 30, 30] }; // sup, der, inf, izq (mm)
+  const pageModal = document.getElementById('pageModal');
+  const pageSizeSel = document.getElementById('pageSize');
+  const pageOrientSel = document.getElementById('pageOrientation');
+  const pageMarginSel = document.getElementById('pageMarginPreset');
+  const pageMInputs = ['pageMTop', 'pageMRight', 'pageMBottom', 'pageMLeft'].map((id) => document.getElementById(id));
+
+  function loadPageSettings() {
+    const def = { size: 'letter', orientation: 'portrait', preset: 'normal', margins: MARGIN_PRESETS.normal.slice() };
+    try {
+      const s = JSON.parse(localStorage.getItem('mdk.page') || 'null');
+      if (!s || !PAGE_SIZES[s.size]) return def;
+      const m = Array.isArray(s.margins) && s.margins.length === 4 ? s.margins.map((n) => Math.max(0, Math.min(80, Number(n) || 0))) : def.margins;
+      return { size: s.size, orientation: s.orientation === 'landscape' ? 'landscape' : 'portrait', preset: (MARGIN_PRESETS[s.preset] || s.preset === 'custom') ? s.preset : 'custom', margins: m };
+    } catch (e) { return def; }
+  }
+  let pageSettings = loadPageSettings();
+  let sheetMode = localStorage.getItem('mdk.sheetMode') === '1';
+
+  function pageDims() {
+    const d = PAGE_SIZES[pageSettings.size];
+    return pageSettings.orientation === 'landscape' ? { w: d[1], h: d[0] } : { w: d[0], h: d[1] };
+  }
+
+  function applySheetLook() {
+    preview.classList.toggle('preview--sheet', sheetMode);
+    previewPane.classList.toggle('pane--sheet', sheetMode);
+    const btn = document.getElementById('sheetToggle');
+    if (btn) btn.classList.toggle('is-active', sheetMode);
+    const d = pageDims();
+    const m = pageSettings.margins;
+    preview.style.setProperty('--sheet-w', d.w + 'mm');
+    preview.style.setProperty('--sheet-h', d.h + 'mm');
+    preview.style.setProperty('--mt', m[0] + 'mm');
+    preview.style.setProperty('--mr', m[1] + 'mm');
+    preview.style.setProperty('--mb', m[2] + 'mm');
+    preview.style.setProperty('--ml', m[3] + 'mm');
+    applyZoom();
+    // Re-renderiza: el ancho de las columnas de tabla se fija en px al
+    // dibujarlas, y al cambiar el ancho de la hoja quedarían desbordadas.
+    updatePreview();
+  }
+
+  function savePageSettings() {
+    localStorage.setItem('mdk.page', JSON.stringify(pageSettings));
+    applySheetLook();
+  }
+
+  function toggleSheet() {
+    sheetMode = !sheetMode;
+    localStorage.setItem('mdk.sheetMode', sheetMode ? '1' : '0');
+    applySheetLook();
+    if (sheetMode && viewMode === 'editor') setViewMode('split');
+  }
+
+  function fillPageModal() {
+    pageSizeSel.value = pageSettings.size;
+    pageOrientSel.value = pageSettings.orientation;
+    pageMarginSel.value = pageSettings.preset;
+    pageMInputs.forEach((inp, i) => { inp.value = pageSettings.margins[i]; });
+  }
+  function showPageModal() { fillPageModal(); pageModal.hidden = false; }
+  function hidePageModal() { pageModal.hidden = true; }
+
+  pageSizeSel.addEventListener('change', () => { pageSettings.size = pageSizeSel.value; savePageSettings(); });
+  pageOrientSel.addEventListener('change', () => { pageSettings.orientation = pageOrientSel.value; savePageSettings(); });
+  pageMarginSel.addEventListener('change', () => {
+    pageSettings.preset = pageMarginSel.value;
+    if (MARGIN_PRESETS[pageSettings.preset]) {
+      pageSettings.margins = MARGIN_PRESETS[pageSettings.preset].slice();
+      pageMInputs.forEach((inp, i) => { inp.value = pageSettings.margins[i]; });
+    }
+    savePageSettings();
+  });
+  pageMInputs.forEach((inp) => {
+    inp.addEventListener('input', () => {
+      pageSettings.margins = pageMInputs.map((x) => Math.max(0, Math.min(80, Number(x.value) || 0)));
+      pageSettings.preset = 'custom';
+      pageMarginSel.value = 'custom';
+      savePageSettings();
+    });
+  });
+  pageModal.addEventListener('click', (e) => { if (e.target === pageModal) hidePageModal(); });
+
   // ---------- exportar PDF / imprimir ----------
 
   function buildStandaloneHtml() {
+    const pd = pageDims();
+    const pm = pageSettings.margins;
     // El PDF/impresión hereda el skin activo en pantalla (colores y fuentes),
     // en vez de un estilo fijo: así "Genérico"/"Generic", "Océano"/"Ocean" o
     // un skin personalizado se ven igual en el documento exportado. Ver
@@ -1207,10 +1420,13 @@
 <html lang="${currentLang}"><head><meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;1,300&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
+  @page { size: ${pd.w}mm ${pd.h}mm; margin: ${pm[0]}mm ${pm[1]}mm ${pm[2]}mm ${pm[3]}mm; }
   * { box-sizing: border-box; }
   html, body { max-width: 100%; overflow-x: hidden; }
+  h1, h2, h3, h4 { break-after: avoid; }
+  pre, blockquote, table, img { break-inside: avoid; }
   body {
-    margin: 0; padding: 22mm 20mm;
+    margin: 0; padding: 0;
     font-family: ${skin.fontBody}; font-weight: 300; font-size: 11pt;
     line-height: 1.7; color: ${skin.mid};
     overflow-wrap: break-word;
@@ -1233,6 +1449,10 @@
   table { border-collapse: collapse; width: 100%; table-layout: fixed; margin: 0 0 14px; font-size: 10pt; }
   th, td { border: 1px solid ${skin.rule}; padding: 6px 10px; text-align: left; word-break: break-word; overflow-wrap: break-word; }
   th { font-family: ${skin.fontCondensed}; font-weight: 700; background: ${skin.bg}; }
+  math { font-family: 'Cambria Math', 'Latin Modern Math', 'STIX Two Math', serif; font-size: 1.08em; color: ${skin.dark}; }
+  math mtd { padding: 0.2em 0.6em; }
+  .math-block { text-align: center; margin: 12px 0; break-inside: avoid; }
+  .math-error { color: ${skin.accent}; }
 </style></head>
 <body>${bodyHtml}</body></html>`;
   }
@@ -1240,7 +1460,8 @@
   async function doExportPdf() {
     const doc = getActiveDoc();
     const html = buildStandaloneHtml();
-    const result = await window.mdk.exportPdf(html, doc && doc.filePath ? fileBaseName(doc.filePath) : t('dialog.defaultFileName'));
+    const pd = pageDims();
+    const result = await window.mdk.exportPdf(html, doc && doc.filePath ? fileBaseName(doc.filePath) : t('dialog.defaultFileName'), { widthMm: pd.w, heightMm: pd.h });
     if (!result.cancelled) {
       statusSaved.textContent = t('status.pdfExported');
       setTimeout(updateTitleAndStatus, 2500);
@@ -1249,7 +1470,8 @@
 
   async function doPrintNative() {
     const html = buildStandaloneHtml();
-    await window.mdk.printNative(html);
+    const pd = pageDims();
+    await window.mdk.printNative(html, { widthMm: pd.w, heightMm: pd.h });
   }
 
   // ---------- inicio ----------
@@ -1264,6 +1486,7 @@
   sidebar.hidden = !sidebarVisible;
   document.getElementById('sidebarToggle').classList.toggle('is-active', sidebarVisible);
 
+  applySheetLook();
   setViewMode(viewMode);
   initPaneDivider();
   initCompareDivider();
@@ -1289,6 +1512,8 @@
   // fuera de la interfaz) en vez de abrirlo como documento.
   window.addEventListener('dragover', (e) => {
     e.preventDefault();
+    // Si se está reordenando una pestaña, no se pisa su efecto 'move' con 'copy' (impediría soltar).
+    if (draggedTabId !== null) return;
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
   });
   window.addEventListener('drop', (e) => {

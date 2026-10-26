@@ -32,6 +32,7 @@ Ir a [Releases](../../releases) y descargar el último `.exe`:
 
 - **`MDK-Setup-X.X.X.exe`**: instalador con asistente (accesos directos en
   Escritorio/Inicio). Recomendado; se actualiza solo.
+- **Microsoft Store**: [mdk Markdown Editor](https://apps.microsoft.com/detail/9PKLBD74P3J7) (firmado por Microsoft, se actualiza por la tienda)
 - **winget**: `winget install earubioc.MDK` (cuando el paquete sea aprobado en el catálogo de winget)
 - **`MDK-portable.exe`**: se ejecuta directo, sin instalar nada.
 
@@ -95,7 +96,7 @@ MDK/
 - **Idioma**: español/inglés, detecta el idioma del sistema al primer arranque; se puede
   cambiar en cualquier momento desde el botón ES/EN o el menú "Idioma", sin reiniciar
 - **Pestañas**: varios documentos abiertos a la vez: nueva pestaña (Ctrl+N), cerrar
-  (Ctrl+W)
+  (Ctrl+W), reordenar arrastrando; al cerrar una con cambios pregunta Guardar / No guardar / Cancelar
 - **Archivo**: Abrir (Ctrl+O), Guardar (Ctrl+S), Guardar como (Ctrl+Shift+S)
 - **Formato**: selecciona una o varias líneas y pulsa H1/H2/H3 en la barra (o Ctrl+1/2/3)
   para convertirlas en encabezado (`#`, `##`, `###`); Ctrl+0 vuelve a texto normal.
@@ -119,12 +120,14 @@ MDK/
 - **Buscar**: Ctrl+F, siguiente/anterior dentro del buscador
 - **Zoom**: botones `− 16px +` en la barra (Ctrl+= / Ctrl+-)
 - **Modo oscuro**: botón ☾ (Ctrl+Shift+D)
-- **Skins**: botón 🎨: VDC Process Lab, Genérico, Océano, Bosque, o personalizado
+- **Skins**: botón 🎨: VDC Process Lab, Genérico, Océano, Bosque, Lectura (papel crema, serifa), o personalizado
   (colores y tipografía propios)
 - **Información del documento**: botón ⓘ: palabras, caracteres, líneas, tokens
   estimados, y novedades de la app
 - **Exportar a PDF**: botón "Exportar PDF" o Ctrl+P: guarda un `.pdf` con el skin activo
 - **Imprimir**: Ctrl+Shift+P abre el diálogo de impresión nativo de Windows
+- **Configurar página**: botón "Página…": tamaño de papel (Carta, Oficio, Legal, A4, A5, A3), orientación y márgenes, usados al exportar a PDF e imprimir; el botón "Hoja" muestra la vista previa como una hoja de ese tamaño
+- **Matemática**: fórmulas LaTeX en línea (`$E=mc^2$`) y en bloque (`$$ ... $$`), mostradas como ecuaciones en vista previa, comparación y PDF (convertidor propio; cubre fracciones, raíces, sumas, integrales, matrices y más)
 
 ## Licencia
 

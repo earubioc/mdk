@@ -65,8 +65,40 @@ const es = {
 
   // ---- Diálogos nativos (main.js) ----
   'dialog.closeTitle': 'Cambios sin guardar',
-  'dialog.closeMessage': 'Hay documentos con cambios sin guardar. Si sales ahora, se perderán.',
+  'dialog.closeMessage': 'Hay documentos con cambios sin guardar. ¿Qué quieres hacer?',
+  'dialog.saveAll': 'Guardar todo',
+  'dialog.closeTabMessage': '"{name}" tiene cambios sin guardar. ¿Qué quieres hacer?',
+  'dialog.save': 'Guardar',
+  'dialog.discard': 'No guardar',
   'dialog.cancel': 'Cancelar',
+  'toolbar.sheetBtn': 'Hoja',
+  'toolbar.sheetTitle': 'Vista previa como hoja de papel (tamaño y márgenes reales)',
+  'toolbar.pageBtn': 'Página…',
+  'toolbar.pageTitle': 'Configurar página: tamaño, orientación y márgenes',
+  'page.modalTitle': 'Configurar página',
+  'page.modalSubtitle': 'Se usa en la vista Hoja, al exportar a PDF y al imprimir.',
+  'page.fieldSize': 'Tamaño de papel',
+  'page.fieldOrientation': 'Orientación',
+  'page.portrait': 'Vertical',
+  'page.landscape': 'Horizontal',
+  'page.fieldMargins': 'Márgenes',
+  'page.marginNormal': 'Normal',
+  'page.marginNarrow': 'Estrechos',
+  'page.marginWide': 'Amplios',
+  'page.marginCustom': 'Personalizados',
+  'page.top': 'Superior (mm)',
+  'page.right': 'Derecho (mm)',
+  'page.bottom': 'Inferior (mm)',
+  'page.left': 'Izquierdo (mm)',
+  'page.sizeLetter': 'Carta (216 × 279 mm)',
+  'page.sizeOficio': 'Oficio (216 × 330 mm)',
+  'page.sizeLegal': 'Legal (216 × 356 mm)',
+  'page.sizeA4': 'A4 (210 × 297 mm)',
+  'page.sizeA5': 'A5 (148 × 210 mm)',
+  'page.sizeA3': 'A3 (297 × 420 mm)',
+  'page.hint': 'Los saltos de página en pantalla son aproximados; el PDF los calcula exactos.',
+  'page.closeBtn': 'Listo',
+  'page.closeTitle': 'Cerrar',
   'dialog.exitWithoutSaving': 'Salir sin guardar',
 
   'dialog.openTitle': 'Abrir archivo',
@@ -151,7 +183,6 @@ const es = {
   'status.pdfExported': 'PDF exportado',
 
   // ---- Confirmaciones ----
-  'confirm.closeTabDirty': '"{name}" tiene cambios sin guardar. ¿Cerrar de todas formas?',
 
   // ---- Modal de información ----
   'info.versionLabel': 'Versión',
@@ -166,6 +197,7 @@ const es = {
   'info.footerRights': 'Todos los derechos reservados.',
   'info.closeTitle': 'Cerrar',
 
+  'changelog.3.0.0': 'Nuevo: pestañas arrastrables, diálogo Guardar / No guardar / Cancelar al cerrar, skin Lectura, configuración de página (tamaño, orientación, márgenes) con vista Hoja y modo matemático LaTeX ($...$ y $$...$$) en vista previa y PDF.',
   'changelog.2.9.0': 'Nuevo: actualizaciones automáticas (versión instalada) y disponible vía winget. Corregido: parpadeo negro en pantalla completa.',
   'changelog.2.8.1': 'Corregido: al comparar documentos con el scroll sincronizado, el documento más largo se desplazaba mucho más rápido que el corto (sincronizaba por % de longitud). Ahora ambos se desplazan la misma cantidad de líneas.',
   'changelog.2.8.0': 'Nuevo: comparar 2 documentos abiertos lado a lado (botón ⧉ o Ctrl+Shift+C), cada lado con su propio Editor/Vista previa, y un candado opcional para sincronizar el scroll entre ambos paneles.',
@@ -216,6 +248,8 @@ const es = {
   'skins.ocean.hint': 'Azul, tipografía clásica',
   'skins.forest.label': 'Bosque',
   'skins.forest.hint': 'Verde, Barlow',
+  'skins.reading.label': 'Lectura',
+  'skins.reading.hint': 'Papel crema, tipografía con serifa',
   'skins.custom.label': 'Personalizado',
   'skins.custom.hint': 'Tu combinación'
 };
@@ -275,8 +309,40 @@ const en = {
 
   // ---- Native dialogs (main.js) ----
   'dialog.closeTitle': 'Unsaved changes',
-  'dialog.closeMessage': 'There are documents with unsaved changes. If you exit now, they will be lost.',
+  'dialog.closeMessage': 'There are documents with unsaved changes. What do you want to do?',
+  'dialog.saveAll': 'Save all',
+  'dialog.closeTabMessage': '"{name}" has unsaved changes. What do you want to do?',
+  'dialog.save': 'Save',
+  'dialog.discard': "Don't save",
   'dialog.cancel': 'Cancel',
+  'toolbar.sheetBtn': 'Sheet',
+  'toolbar.sheetTitle': 'Preview as a sheet of paper (real size and margins)',
+  'toolbar.pageBtn': 'Page…',
+  'toolbar.pageTitle': 'Page setup: paper size, orientation and margins',
+  'page.modalTitle': 'Page setup',
+  'page.modalSubtitle': 'Used in Sheet view, when exporting to PDF and when printing.',
+  'page.fieldSize': 'Paper size',
+  'page.fieldOrientation': 'Orientation',
+  'page.portrait': 'Portrait',
+  'page.landscape': 'Landscape',
+  'page.fieldMargins': 'Margins',
+  'page.marginNormal': 'Normal',
+  'page.marginNarrow': 'Narrow',
+  'page.marginWide': 'Wide',
+  'page.marginCustom': 'Custom',
+  'page.top': 'Top (mm)',
+  'page.right': 'Right (mm)',
+  'page.bottom': 'Bottom (mm)',
+  'page.left': 'Left (mm)',
+  'page.sizeLetter': 'Letter (216 × 279 mm)',
+  'page.sizeOficio': 'Oficio (216 × 330 mm)',
+  'page.sizeLegal': 'Legal (216 × 356 mm)',
+  'page.sizeA4': 'A4 (210 × 297 mm)',
+  'page.sizeA5': 'A5 (148 × 210 mm)',
+  'page.sizeA3': 'A3 (297 × 420 mm)',
+  'page.hint': 'On-screen page breaks are approximate; the PDF computes exact ones.',
+  'page.closeBtn': 'Done',
+  'page.closeTitle': 'Close',
   'dialog.exitWithoutSaving': 'Exit without saving',
 
   'dialog.openTitle': 'Open file',
@@ -361,7 +427,6 @@ const en = {
   'status.pdfExported': 'PDF exported',
 
   // ---- Confirmations ----
-  'confirm.closeTabDirty': '"{name}" has unsaved changes. Close anyway?',
 
   // ---- Info modal ----
   'info.versionLabel': 'Version',
@@ -376,6 +441,7 @@ const en = {
   'info.footerRights': 'All rights reserved.',
   'info.closeTitle': 'Close',
 
+  'changelog.3.0.0': 'New: draggable tabs, Save / Don\'t save / Cancel dialog on close, Reading skin, page setup (size, orientation, margins) with Sheet view, and LaTeX math mode ($...$ and $$...$$) in preview and PDF.',
   'changelog.2.9.0': 'New: automatic updates (installed version) and available via winget. Fixed: black flicker in fullscreen.',
   'changelog.2.8.1': 'Fixed: when comparing documents with scroll sync on, the longer document scrolled much faster than the shorter one (it synced by % of length). Both now move the same number of lines.',
   'changelog.2.8.0': 'New: compare 2 open documents side by side (⧉ button or Ctrl+Shift+C), each side with its own Editor/Preview toggle, and an optional lock to sync scrolling between both panels.',
@@ -426,6 +492,8 @@ const en = {
   'skins.ocean.hint': 'Blue, classic typography',
   'skins.forest.label': 'Forest',
   'skins.forest.hint': 'Green, Barlow',
+  'skins.reading.label': 'Reading',
+  'skins.reading.hint': 'Cream paper, serif typography',
   'skins.custom.label': 'Custom',
   'skins.custom.hint': 'Your combination'
 };

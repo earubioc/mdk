@@ -90,6 +90,13 @@
       <button class="tool-btn" data-action="view-split" data-i18n="toolbar.splitBtn" data-i18n-title="toolbar.splitTitle">Split</button>
     </div>
 
+    <div class="tool-sep"></div>
+
+    <div class="tool-group">
+      <button class="tool-btn" data-action="toggle-sheet" id="sheetToggle" data-i18n="toolbar.sheetBtn" data-i18n-title="toolbar.sheetTitle">Sheet</button>
+      <button class="tool-btn" data-action="show-page" data-i18n="toolbar.pageBtn" data-i18n-title="toolbar.pageTitle">Page…</button>
+    </div>
+
     <div class="tool-spacer"></div>
 
     <div class="tool-group">
@@ -130,7 +137,7 @@
         <div class="modal-mark">+</div>
         <div>
           <div class="modal-title" style="text-align:left;">MDK</div>
-          <div class="modal-version" id="modalVersion">2.9.0</div>
+          <div class="modal-version" id="modalVersion">3.0.0</div>
         </div>
       </div>
       <div class="modal-subtitle" style="text-align:left;" data-i18n="info.subtitle">Simple Markdown editor</div>
@@ -214,6 +221,52 @@
     </div>
   </div>
 
+  <!-- Modal configurar página (tamaño, orientación, márgenes) -->
+  <div class="modal-overlay" id="pageModal" hidden>
+    <div class="modal-card modal-card--wide">
+      <button class="modal-close" data-action="hide-page" data-i18n-title="page.closeTitle">×</button>
+      <div class="modal-title" style="text-align:left; font-size:16pt;" data-i18n="page.modalTitle">Page setup</div>
+      <div class="modal-subtitle" style="text-align:left; margin-bottom: 14px;" data-i18n="page.modalSubtitle"></div>
+
+      <div class="skin-field">
+        <label for="pageSize" data-i18n="page.fieldSize">Paper size</label>
+        <select id="pageSize">
+          <option value="letter" data-i18n="page.sizeLetter"></option>
+          <option value="oficio" data-i18n="page.sizeOficio"></option>
+          <option value="legal" data-i18n="page.sizeLegal"></option>
+          <option value="a4" data-i18n="page.sizeA4"></option>
+          <option value="a5" data-i18n="page.sizeA5"></option>
+          <option value="a3" data-i18n="page.sizeA3"></option>
+        </select>
+      </div>
+      <div class="skin-field">
+        <label for="pageOrientation" data-i18n="page.fieldOrientation">Orientation</label>
+        <select id="pageOrientation">
+          <option value="portrait" data-i18n="page.portrait"></option>
+          <option value="landscape" data-i18n="page.landscape"></option>
+        </select>
+      </div>
+      <div class="skin-field">
+        <label for="pageMarginPreset" data-i18n="page.fieldMargins">Margins</label>
+        <select id="pageMarginPreset">
+          <option value="normal" data-i18n="page.marginNormal"></option>
+          <option value="narrow" data-i18n="page.marginNarrow"></option>
+          <option value="wide" data-i18n="page.marginWide"></option>
+          <option value="custom" data-i18n="page.marginCustom"></option>
+        </select>
+      </div>
+      <div class="skin-field"><label for="pageMTop" data-i18n="page.top">Top</label><input type="number" id="pageMTop" min="0" max="80" step="1"></div>
+      <div class="skin-field"><label for="pageMRight" data-i18n="page.right">Right</label><input type="number" id="pageMRight" min="0" max="80" step="1"></div>
+      <div class="skin-field"><label for="pageMBottom" data-i18n="page.bottom">Bottom</label><input type="number" id="pageMBottom" min="0" max="80" step="1"></div>
+      <div class="skin-field"><label for="pageMLeft" data-i18n="page.left">Left</label><input type="number" id="pageMLeft" min="0" max="80" step="1"></div>
+
+      <div class="modal-subtitle" style="text-align:left; margin-top: 10px;" data-i18n="page.hint"></div>
+      <div class="skin-actions">
+        <button class="tool-btn tool-btn--accent" data-action="hide-page" data-i18n="page.closeBtn">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal selector de comparación: elegir 2 pestañas abiertas -->
   <div class="modal-overlay" id="compareModal" hidden>
     <div class="modal-card modal-card--wide">
@@ -278,6 +331,7 @@
     </div>
   </div>
 
+<script src="math.js"></script>
 <script src="markdown.js"></script>
 <script src="renderer.js"></script>
 </body>

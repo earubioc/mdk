@@ -212,18 +212,32 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
 
+  // Cerrar la ventana con cambios sin guardar: Guardar todo / Salir sin guardar / Cancelar.
+  // "Guardar todo" le pide al renderer que guarde cada documento modificado y,
+  // si todo se guardó, el renderer llama a quit-now.
+  let closePromptOpen = false;
   mainWindow.on('close', (e) => {
-    if (hasUnsavedChanges) {
-      const choice = dialog.showMessageBoxSync(mainWindow, {
-        type: 'warning',
-        buttons: [t('dialog.cancel'), t('dialog.exitWithoutSaving')],
-        defaultId: 0,
-        cancelId: 0,
-        title: t('dialog.closeTitle'),
-        message: t('dialog.closeMessage')
-      });
-      if (choice === 0) e.preventDefault();
-    }
+    if (!hasUnsavedChanges) return;
+    e.preventDefault();
+    if (closePromptOpen) return;
+    closePromptOpen = true;
+    dialog.showMessageBox(mainWindow, {
+      type: 'warning',
+      buttons: [t('dialog.saveAll'), t('dialog.exitWithoutSaving'), t('dialog.cancel')],
+      defaultId: 0,
+      cancelId: 2,
+      noLink: true,
+      title: t('dialog.closeTitle'),
+      message: t('dialog.closeMessage')
+    }).then(({ response }) => {
+      closePromptOpen = false;
+      if (response === 0) {
+        mainWindow.webContents.send('menu-action', 'save-all-and-quit');
+      } else if (response === 1) {
+        hasUnsavedChanges = false;
+        mainWindow.close();
+      }
+    });
   });
 
   buildMenu();
@@ -335,6 +349,27 @@ ipcMain.on('set-dirty', (_evt, dirty) => {
   hasUnsavedChanges = dirty;
 });
 
+// El renderer terminó de guardar todo: cerrar la ventana sin volver a preguntar.
+ipcMain.on('quit-now', () => {
+  hasUnsavedChanges = false;
+  if (mainWindow) mainWindow.close();
+});
+
+// Cerrar una pestaña con cambios: diálogo nativo de tres opciones (Guardar / No guardar / Cancelar).
+// Devuelve 'save' | 'discard' | 'cancel'. Cerrar el diálogo con Esc o la X cuenta como cancelar.
+ipcMain.handle('confirm-close-tab', async (_evt, name) => {
+  const { response } = await dialog.showMessageBox(mainWindow, {
+    type: 'warning',
+    buttons: [t('dialog.save'), t('dialog.discard'), t('dialog.cancel')],
+    defaultId: 0,
+    cancelId: 2,
+    noLink: true,
+    title: t('dialog.closeTitle'),
+    message: t('dialog.closeTabMessage').replace('{name}', String(name || ''))
+  });
+  return response === 0 ? 'save' : (response === 1 ? 'discard' : 'cancel');
+});
+
 ipcMain.on('set-title', (_evt, title) => {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setTitle(title);
 });
@@ -401,7 +436,14 @@ ipcMain.handle('save-file', async (_evt, { content, filePath, saveAs }) => {
 });
 
 // ---- IPC: exportar a PDF ----
-ipcMain.handle('export-pdf', async (_evt, { html, suggestedName }) => {
+// Tamaño de hoja personalizado (mm) -> pulgadas (printToPDF) o micras (print).
+function pageDimsFrom(page) {
+  const w = page && Number(page.widthMm), h = page && Number(page.heightMm);
+  if (!(w > 50 && w < 1000 && h > 50 && h < 1000)) return null;
+  return { wIn: w / 25.4, hIn: h / 25.4, wMicron: Math.round(w * 1000), hMicron: Math.round(h * 1000) };
+}
+
+ipcMain.handle('export-pdf', async (_evt, { html, suggestedName, page }) => {
   const result = await dialog.showSaveDialog(mainWindow, {
     title: t('dialog.exportPdfTitle'),
     defaultPath: (suggestedName || t('dialog.defaultPdfBaseName')).replace(/\.(md|markdown|txt)$/i, '') + '.pdf',
@@ -415,10 +457,13 @@ ipcMain.handle('export-pdf', async (_evt, { html, suggestedName }) => {
   });
   try {
     await pdfWindow.loadURL('data:text/html;charset=UTF-8,' + encodeURIComponent(html));
+    // Tamaño y márgenes vienen del CSS @page del HTML (preferCSSPageSize);
+    // pageSize queda como respaldo.
+    const dims = pageDimsFrom(page);
     const pdfBuffer = await pdfWindow.webContents.printToPDF({
       printBackground: true,
-      pageSize: 'Letter',
-      margins: { marginType: 'default' }
+      preferCSSPageSize: true,
+      pageSize: dims ? { width: dims.wIn, height: dims.hIn } : 'Letter'
     });
     fs.writeFileSync(result.filePath, pdfBuffer);
     pdfWindow.destroy();
@@ -430,10 +475,13 @@ ipcMain.handle('export-pdf', async (_evt, { html, suggestedName }) => {
   }
 });
 
-ipcMain.handle('print-native', async (_evt, { html }) => {
+ipcMain.handle('print-native', async (_evt, { html, page }) => {
   const printWindow = new BrowserWindow({ show: false });
   await printWindow.loadURL('data:text/html;charset=UTF-8,' + encodeURIComponent(html));
-  printWindow.webContents.print({ printBackground: true }, () => {
+  const dims = pageDimsFrom(page);
+  const opts = { printBackground: true };
+  if (dims) opts.pageSize = { width: dims.wMicron, height: dims.hMicron };
+  printWindow.webContents.print(opts, () => {
     printWindow.destroy();
   });
   return { started: true };

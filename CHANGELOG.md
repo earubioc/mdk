@@ -7,6 +7,20 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## 3.0.0
+
+- Nuevo: las pestañas se reordenan arrastrándolas.
+- Nuevo: al cerrar una pestaña con cambios, diálogo con Guardar / No guardar / Cancelar
+  (antes solo pedía confirmar la pérdida).
+- Nuevo: skin "Lectura" (papel crema, texto café, tipografía con serifa, textura sutil).
+- Nuevo: configuración de página ("Página…"): tamaño (Carta, Oficio, Legal, A4, A5, A3),
+  orientación y márgenes. Se aplica al PDF y a la impresión, y la vista "Hoja" muestra la
+  vista previa como una hoja de ese tamaño (saltos de página aproximados en pantalla).
+  El PDF ya no usa siempre Carta.
+- Nuevo: modo matemático. Fórmulas LaTeX en línea (`$...$`) y en bloque (`$$...$$`),
+  convertidas a MathML con un convertidor propio (`src/math.js`, sin dependencias);
+  funcionan en vista previa, comparación y PDF. Fórmula inválida: se muestra el texto.
+
 ## 2.9.0
 
 - Nuevo: actualizaciones automáticas. La versión instalada (instalador) revisa GitHub
