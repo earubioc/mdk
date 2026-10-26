@@ -48,6 +48,11 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
 .btn-ghost:hover{background:var(--hover)}
 .btn-light{background:#fff;color:#111}
+.btn-store{background:transparent;color:var(--ink);border-color:var(--ink);gap:10px}
+.btn-store:hover{background:var(--ink);color:var(--on-ink)}
+.btn-store svg{width:18px;height:18px;flex:none}
+.btn-store small{display:block;font-size:.68rem;opacity:.7;line-height:1;margin-bottom:2px}
+.btn-store b{display:block;font-weight:600;line-height:1.05}
 .nav{position:sticky;top:0;z-index:60;background:var(--nav);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid var(--rule)}
 .nav .wrap{display:flex;align-items:center;height:68px;gap:14px}
 .brand{display:flex;align-items:center;gap:7px;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.06em;text-decoration:none;line-height:1}
@@ -163,6 +168,7 @@ footer a{color:var(--mid)}
     <p class="lead"><span data-l="es">Gratis, sin publicidad, sin cuenta y de código abierto. Vista previa en vivo, comparación de documentos, exportación a PDF y una interfaz que puedes vestir a tu gusto.</span><span data-l="en">Free, no ads, no account, open source. Live preview, document comparison, PDF export and an interface you can skin to taste.</span></p>
     <div class="ctas">
       <a class="btn btn-primary" data-dl="setup" href="https://github.com/earubioc/mdk/releases/latest"><span data-l="es">Descargar para Windows</span><span data-l="en">Download for Windows</span> <small style="opacity:.65">v<span data-ver></span></small></a>
+      <a class="btn btn-store" href="https://apps.microsoft.com/detail/9PKLBD74P3J7" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 2h9.5v9.5H2zM12.5 2H22v9.5h-9.5zM2 12.5h9.5V22H2zM12.5 12.5H22V22h-9.5z"/></svg><span><small><span data-l="es">Disponible en</span><span data-l="en">Get it from</span></small><b>Microsoft Store</b></span></a>
       <a class="btn btn-ghost" href="#funciones"><span data-l="es">Ver funciones</span><span data-l="en">See features</span></a>
     </div>
     <div class="cmd"><span>winget install earubioc.MDK</span><button type="button" id="copyBtn" data-copy="winget install earubioc.MDK"><span data-l="es">Copiar</span><span data-l="en">Copy</span></button></div>
@@ -266,7 +272,7 @@ footer a{color:var(--mid)}
 
 <script>
 (function(){
-var VERSION='2.9.0'; /* actualizar en cada release */
+var VERSION='3.0.0'; /* actualizar en cada release */
 var BASE='https://github.com/earubioc/mdk/releases/';
 document.querySelectorAll('[data-dl=setup]').forEach(function(a){a.href=BASE+'download/v'+VERSION+'/MDK-Setup-'+VERSION+'.exe'});
 document.querySelectorAll('[data-dl=portable]').forEach(function(a){a.href=BASE+'latest/download/MDK-portable.exe'});
