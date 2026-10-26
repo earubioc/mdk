@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MDK | Privacidad / Privacy</title>
+<meta name="description" content="Política de privacidad de MDK. MDK no recopila datos personales.">
+<meta name="robots" content="index,follow">
+<script>
+(function(){var t=null;try{t=localStorage.getItem('mdk_theme')}catch(e){}
+if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'}
+document.documentElement.setAttribute('data-theme',t)})();
+</script>
+<link rel="icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#C0392B;--page:#fff;--card:#fff;--ink:#1D1D1F;--mid:#4A4A4A;--light:#86868B;--rule:rgba(0,0,0,.08);--line:rgba(0,0,0,.16);--hover:rgba(0,0,0,.04);color-scheme:light}
+:root[data-theme=dark]{--red:#E8584A;--page:#07080b;--card:#121419;--ink:#F2F2F5;--mid:#A9ADB8;--light:#7B808D;--rule:rgba(255,255,255,.09);--line:rgba(255,255,255,.2);--hover:rgba(255,255,255,.06);color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Barlow',system-ui,sans-serif;font-weight:400;color:var(--ink);background:var(--page);line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--ink)}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+.top{display:flex;align-items:center;justify-content:space-between;height:68px;border-bottom:1px solid var(--rule)}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.06em;text-decoration:none}
+.brand i{font-style:normal;color:var(--red);font-family:'Barlow',sans-serif;font-weight:700;font-size:1rem;margin-right:7px}
+.tools{display:flex;gap:8px}
+.tool{height:36px;min-width:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:transparent;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.1em;color:var(--mid);cursor:pointer}
+.tool:hover{background:var(--hover);color:var(--ink)}
+.eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:.82rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--mid);margin-top:48px;display:block}
+.eyebrow::before{content:'+';color:var(--red);font-size:1.5em;font-weight:600;line-height:0;margin-right:.5em;vertical-align:-.08em}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;line-height:1;font-size:clamp(2.6rem,6vw,4rem);margin:14px 0 8px}
+h2{font-size:1.15rem;font-weight:600;margin:34px 0 8px}
+p,li{color:var(--mid);font-size:1.02rem}
+ul{padding-left:1.2rem}
+.meta{color:var(--light);font-size:.9rem}
+footer{margin:56px 0 48px;padding-top:24px;border-top:1px solid var(--rule);color:var(--light);font-size:.9rem}
+[data-l=en]{display:none}body.en [data-l=es]{display:none}body.en [data-l=en]{display:revert}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top">
+  <a class="brand" href="./"><i>+</i>MDK</a>
+  <div class="tools">
+    <button class="tool" id="langBtn" type="button" aria-label="Cambiar idioma / Change language">EN</button>
+    <button class="tool" id="themeBtn" type="button" aria-label="Cambiar tema / Switch theme">&#9680;</button>
+  </div>
+</div>
+
+<main>
+<span class="eyebrow"><span data-l="es">Privacidad</span><span data-l="en">Privacy</span></span>
+<h1><span data-l="es">Política de privacidad</span><span data-l="en">Privacy policy</span></h1>
+<p class="meta"><span data-l="es">Última actualización: 25 de octubre de 2026</span><span data-l="en">Last updated: October 25, 2026</span></p>
+
+<p data-l="es">MDK es un editor de Markdown de escritorio para Windows, gratuito y de código abierto, desarrollado por Edgar A. Rubio C. (VDC Process Lab). Esta política explica qué información trata MDK. En resumen: <b>MDK no recopila, almacena en servidores ni transmite información personal.</b></p>
+<p data-l="en">MDK is a free, open source Markdown desktop editor for Windows, developed by Edgar A. Rubio C. (VDC Process Lab). This policy explains what information MDK handles. In short: <b>MDK does not collect, store on servers or transmit personal information.</b></p>
+
+<h2><span data-l="es">Tus documentos</span><span data-l="en">Your documents</span></h2>
+<p data-l="es">MDK abre y guarda los archivos <code>.md</code>, <code>.markdown</code> y <code>.txt</code> que tú eliges, en tu propio equipo. El contenido de tus documentos nunca sale de tu computador ni se envía a VDC Process Lab ni a terceros.</p>
+<p data-l="en">MDK opens and saves the <code>.md</code>, <code>.markdown</code> and <code>.txt</code> files that you choose, on your own computer. The content of your documents never leaves your computer and is never sent to VDC Process Lab or to third parties.</p>
+
+<h2><span data-l="es">Datos que se guardan en tu equipo</span><span data-l="en">Data stored on your device</span></h2>
+<p data-l="es">Para funcionar, MDK guarda localmente tus preferencias (idioma, tema o skin, zoom, modo de vista, tamaño de los paneles) y la lista de archivos recientes (las rutas de esos archivos). Estos datos permanecen en tu equipo, no se envían a ningún servidor y puedes borrarlos desinstalando la aplicación.</p>
+<p data-l="en">To work properly, MDK stores your preferences (language, theme or skin, zoom, view mode, panel size) and the list of recent files (the paths of those files) locally. This data stays on your device, is not sent to any server, and can be removed by uninstalling the app.</p>
+
+<h2><span data-l="es">Conexiones de red</span><span data-l="en">Network connections</span></h2>
+<ul>
+<li data-l="es">MDK no incluye cuentas de usuario, publicidad, analítica ni telemetría.</li>
+<li data-l="en">MDK has no user accounts, advertising, analytics or telemetry.</li>
+<li data-l="es">La interfaz puede cargar tipografías desde Google Fonts (<code>fonts.googleapis.com</code>). Al hacerlo, Google puede recibir tu dirección IP técnica, según la <a href="https://policies.google.com/privacy">política de privacidad de Google</a>. Si no hay conexión, MDK usa tipografías del sistema y sigue funcionando.</li>
+<li data-l="en">The interface may load typefaces from Google Fonts (<code>fonts.googleapis.com</code>). When it does, Google may receive your technical IP address, according to <a href="https://policies.google.com/privacy">Google's privacy policy</a>. Without a connection, MDK uses system fonts and keeps working.</li>
+<li data-l="es">La versión instalada desde el sitio del proyecto (GitHub) puede consultar GitHub Releases para buscar actualizaciones. La versión de Microsoft Store no hace esa consulta: la actualiza la tienda.</li>
+<li data-l="en">The version installed from the project site (GitHub) may check GitHub Releases for updates. The Microsoft Store version does not do this: the Store updates it.</li>
+</ul>
+
+<h2><span data-l="es">Este sitio web</span><span data-l="en">This website</span></h2>
+<p data-l="es">El sitio del proyecto está alojado en GitHub Pages, que puede registrar datos técnicos de acceso (como la dirección IP) según la política de GitHub. El sitio no usa cookies de seguimiento ni analítica; solo guarda en tu navegador, de forma local, tu preferencia de idioma y tema.</p>
+<p data-l="en">The project website is hosted on GitHub Pages, which may log technical access data (such as the IP address) under GitHub's policy. The site uses no tracking cookies or analytics; it only stores your language and theme preference locally in your browser.</p>
+
+<h2><span data-l="es">Niños</span><span data-l="en">Children</span></h2>
+<p data-l="es">MDK no recopila información personal de ninguna persona, incluidos los menores de edad.</p>
+<p data-l="en">MDK does not collect personal information from anyone, including children.</p>
+
+<h2><span data-l="es">Cambios y contacto</span><span data-l="en">Changes and contact</span></h2>
+<p data-l="es">Si MDK cambia la forma en que trata la información, actualizaremos esta página e indicaremos la fecha. Para preguntas o solicitudes sobre tus datos escribe a <a href="mailto:earubioc@vdcprocesslab.com">earubioc@vdcprocesslab.com</a>.</p>
+<p data-l="en">If MDK changes how it handles information, we will update this page and show the date. For questions or requests about your data write to <a href="mailto:earubioc@vdcprocesslab.com">earubioc@vdcprocesslab.com</a>.</p>
+</main>
+
+<footer><a href="./">&larr; MDK</a> · <a href="https://vdcprocesslab.com">VDC Process Lab</a> · MIT · &copy; 2026</footer>
+</div>
+<script>
+(function(){
+var b=document.body,r=document.documentElement,lb=document.getElementById('langBtn'),tb=document.getElementById('themeBtn');
+function setLang(l){b.classList.toggle('en',l==='en');r.lang=l;lb.textContent=l==='en'?'ES':'EN';try{localStorage.setItem('mdk_lang',l)}catch(e){}}
+var s;try{s=localStorage.getItem('mdk_lang')}catch(e){}
+setLang(s||((navigator.language||'es').toLowerCase().indexOf('es')===0?'es':'en'));
+lb.onclick=function(){setLang(b.classList.contains('en')?'es':'en')};
+tb.onclick=function(){var t=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',t);try{localStorage.setItem('mdk_theme',t)}catch(e){}};
+})();
+</script>
+</body>
+</html>

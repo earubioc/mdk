@@ -10,7 +10,8 @@
     "start": "electron .",
     "dist": "electron-builder --win portable nsis --publish never",
     "dist:portable": "electron-builder --win portable --publish never",
-    "dist:installer": "electron-builder --win nsis --publish never"
+    "dist:installer": "electron-builder --win nsis --publish never",
+    "dist:store": "electron-builder --win appx --publish never"
   },
   "dependencies": {
     "electron-updater": "^6.3.9"
@@ -67,6 +68,16 @@
     },
     "portable": {
       "artifactName": "MDK-portable.exe"
+    },
+    "appx": {
+      "artifactName": "MDK-${version}.appx",
+      "applicationId": "MDK",
+      "displayName": "mdk Markdown Editor",
+      "identityName": "earubioc.mdkMarkdownEditor",
+      "publisher": "CN=F9C3E297-EA19-42B8-97C9-B3190492B164",
+      "publisherDisplayName": "earubioc",
+      "languages": ["es-CO", "en-US"],
+      "backgroundColor": "#222222"
     }
   }
 }

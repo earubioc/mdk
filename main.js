@@ -164,8 +164,10 @@ if (!gotSingleInstanceLock) {
 // Actualizaciones automáticas (GitHub Releases vía electron-updater). Solo aplican
 // a la app instalada (NSIS): la versión portable no puede reemplazarse a sí misma,
 // y en desarrollo (npm start) no hay nada que actualizar. Ver DECISIONS.md #33.
+// Tampoco aplica a la versión de Microsoft Store (process.windowsStore): ahí actualiza la tienda
+// (DECISIONS.md #35).
 function setupAutoUpdater() {
-  if (!app.isPackaged || process.env.PORTABLE_EXECUTABLE_FILE) return;
+  if (!app.isPackaged || process.env.PORTABLE_EXECUTABLE_FILE || process.windowsStore) return;
   let autoUpdater;
   try {
     ({ autoUpdater } = require('electron-updater'));
