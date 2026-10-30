@@ -3,6 +3,7 @@ package com.vdcprocesslab.mdk;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import android.view.ViewGroup;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
@@ -15,23 +16,38 @@ import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
+import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.UserMessagingPlatform;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Anuncios (banner de AdMob) y compra única «Quitar anuncios» (Google Play Billing).
- * Si el producto ya fue comprado el banner no se carga ni se muestra.
+ * Anuncios de AdMob y compra única «Quitar anuncios» (Google Play Billing).
+ *  - Banner fijo abajo.
+ *  - Intersticial (puede ser video) cada INTERSTITIAL_EVERY documentos abiertos/creados, nunca
+ *    antes de INTERSTITIAL_COOLDOWN_MS desde el inicio ni desde el anterior, y jamás mientras se escribe.
+ *  - Antes de pedir anuncios se obtiene el consentimiento (UMP, obligatorio en EEE/Reino Unido).
+ * Si ya compró, no se carga nada de publicidad.
  */
 class Monetization {
     interface Listener {
-        /** adsRemoved: ya compró; price: precio localizado de Play (o null si aún no se conoce). */
-        void onState(boolean adsRemoved, String price);
+        /** adsRemoved: ya compró; price: precio de Play (o null); privacyOptions: mostrar «Privacidad de anuncios». */
+        void onState(boolean adsRemoved, String price, boolean privacyOptions);
     }
+
+    static final int INTERSTITIAL_EVERY = 5;
+    static final long INTERSTITIAL_COOLDOWN_MS = 3 * 60 * 1000L;
 
     private final Activity activity;
     private final ViewGroup adContainer;
@@ -40,7 +56,11 @@ class Monetization {
     private BillingClient billing;
     private ProductDetails details;
     private AdView adView;
+    private InterstitialAd interstitial;
+    private ConsentInformation consent;
     private boolean adsRemoved;
+    private boolean adsStarted;
+    private long lastInterstitial = SystemClock.elapsedRealtime();   // sin intersticial en los primeros minutos
 
     Monetization(Activity activity, ViewGroup adContainer, Listener listener) {
         this.activity = activity;
@@ -52,7 +72,7 @@ class Monetization {
     }
 
     void start() {
-        if (!adsRemoved) showBanner();
+        if (!adsRemoved) requestConsent();
         notifyState();
 
         billing = BillingClient.newBuilder(activity)
@@ -85,6 +105,26 @@ class Monetization {
         billing.launchBillingFlow(activity, params);
     }
 
+    /** Un documento nuevo o abierto: cada INTERSTITIAL_EVERY se muestra un intersticial si está listo. */
+    void onDocumentOpened() {
+        if (adsRemoved) return;
+        int n = prefs.getInt("docsOpened", 0) + 1;
+        long now = SystemClock.elapsedRealtime();
+        if (n >= INTERSTITIAL_EVERY && interstitial != null && now - lastInterstitial >= INTERSTITIAL_COOLDOWN_MS) {
+            n = 0;
+            lastInterstitial = now;
+            interstitial.show(activity);
+        }
+        prefs.edit().putInt("docsOpened", n).apply();
+    }
+
+    void showPrivacyOptions() {
+        UserMessagingPlatform.showPrivacyOptionsForm(activity, error -> {
+            initAds();   // por si el usuario acaba de dar consentimiento
+            notifyState();
+        });
+    }
+
     void pause() { if (adView != null) adView.pause(); }
 
     void resume() {
@@ -97,10 +137,49 @@ class Monetization {
         if (billing != null) billing.endConnection();
     }
 
-    // ---- anuncios ----
+    // ---- consentimiento y anuncios ----
+
+    private void requestConsent() {
+        consent = UserMessagingPlatform.getConsentInformation(activity);
+        initAds();   // consentimiento ya guardado de una sesión anterior
+        consent.requestConsentInfoUpdate(activity, new ConsentRequestParameters.Builder().build(),
+                () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity, formError -> {
+                    initAds();
+                    notifyState();
+                }),
+                error -> initAds());
+    }
+
+    private void initAds() {
+        if (adsStarted || adsRemoved || consent == null || !consent.canRequestAds()) return;
+        adsStarted = true;
+        MobileAds.initialize(activity, status -> { });
+        showBanner();
+        loadInterstitial();
+    }
+
+    private void loadInterstitial() {
+        if (adsRemoved) return;
+        InterstitialAd.load(activity, BuildConfig.ADMOB_INTERSTITIAL_ID, new AdRequest.Builder().build(),
+                new InterstitialAdLoadCallback() {
+                    @Override
+                    public void onAdLoaded(InterstitialAd ad) {
+                        interstitial = ad;
+                        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+                            @Override
+                            public void onAdDismissedFullScreenContent() { interstitial = null; loadInterstitial(); }
+
+                            @Override
+                            public void onAdFailedToShowFullScreenContent(AdError error) { interstitial = null; loadInterstitial(); }
+                        });
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(LoadAdError error) { interstitial = null; }
+                });
+    }
 
     private void showBanner() {
-        MobileAds.initialize(activity, status -> { });
         adView = new AdView(activity);
         adView.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
         float widthDp = activity.getResources().getDisplayMetrics().widthPixels
@@ -158,6 +237,7 @@ class Monetization {
         // Solo se concede, nunca se revoca por una consulta vacía: un fallo de red no debe devolver los anuncios.
         if (owned && !adsRemoved) {
             adsRemoved = true;
+            interstitial = null;
             prefs.edit().putBoolean("adsRemoved", true).apply();
             activity.runOnUiThread(() -> { hideBanner(); notifyState(); });
         }
@@ -168,6 +248,8 @@ class Monetization {
         if (details != null && details.getOneTimePurchaseOfferDetails() != null) {
             price = details.getOneTimePurchaseOfferDetails().getFormattedPrice();
         }
-        listener.onState(adsRemoved, price);
+        boolean privacy = consent != null && consent.getPrivacyOptionsRequirementStatus()
+                == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+        listener.onState(adsRemoved, price, privacy && !adsRemoved);
     }
 }

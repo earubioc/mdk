@@ -8,12 +8,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.provider.OpenableColumns;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.webkit.JavascriptInterface;
@@ -48,7 +50,7 @@ public class MainActivity extends Activity {
     private String pendingSaveContent = null;
     private String pendingSaveName = null;
     private Monetization monetization;
-    private String adsState = "false,null"; // último estado enviado a JS (se reenvía al cargar la página)
+    private String adsState = "false,null,false"; // último estado enviado a JS (se reenvía al cargar la página)
     private WebView printView;              // referencia viva mientras el sistema imprime
 
     // Las rutas que ve el renderer son nombres de archivo; aquí se resuelven a su Uri.
@@ -63,10 +65,23 @@ public class MainActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.addView(web, new LinearLayout.LayoutParams(-1, 0, 1f));
         root.addView(adBar, new LinearLayout.LayoutParams(-1, ViewGroup.LayoutParams.WRAP_CONTENT));
+        // targetSdk 35+ dibuja a pantalla completa: se reservan las barras del sistema y el teclado.
+        root.setBackgroundColor(0xFF222222);
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
+            if (Build.VERSION.SDK_INT >= 30) {
+                android.graphics.Insets b = insets.getInsets(WindowInsets.Type.systemBars()
+                        | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime());
+                v.setPadding(b.left, b.top, b.right, b.bottom);
+                return WindowInsets.CONSUMED;
+            }
+            v.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+            return insets.consumeSystemWindowInsets();
+        });
         setContentView(root);
 
-        monetization = new Monetization(this, adBar, (removed, price) -> {
-            adsState = removed + "," + (price == null ? "null" : JSONObject.quote(price));
+        monetization = new Monetization(this, adBar, (removed, price, privacy) -> {
+            adsState = removed + "," + (price == null ? "null" : JSONObject.quote(price)) + "," + privacy;
             if (pageReady) js("window.__mdkAds(" + adsState + ")");
         });
         monetization.start();
@@ -298,6 +313,16 @@ public class MainActivity extends Activity {
                 });
                 printView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
             });
+        }
+
+        @JavascriptInterface
+        public void documentOpened() {
+            runOnUiThread(monetization::onDocumentOpened);
+        }
+
+        @JavascriptInterface
+        public void privacyOptions() {
+            runOnUiThread(monetization::showPrivacyOptions);
         }
 
         @JavascriptInterface

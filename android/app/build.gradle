@@ -8,7 +8,7 @@ def (vMajor, vMinor, vPatch) = pkg.version.tokenize('.').collect { it.toInteger(
 
 android {
     namespace 'com.vdcprocesslab.mdk'
-    compileSdk 34
+    compileSdk 36
 
     buildFeatures {
         buildConfig true
@@ -17,15 +17,18 @@ android {
     defaultConfig {
         applicationId 'com.vdcprocesslab.mdkraft'
         // AdMob: por defecto IDs de PRUEBA de Google. En producción exportar
-        // MDK_ADMOB_APP_ID y MDK_ADMOB_BANNER_ID (los de tu cuenta de AdMob).
+        // MDK_ADMOB_APP_ID, MDK_ADMOB_BANNER_ID y MDK_ADMOB_INTERSTITIAL_ID (los de tu cuenta de AdMob).
         manifestPlaceholders = [admobAppId: System.getenv('MDK_ADMOB_APP_ID') ?: 'ca-app-pub-3940256099942544~3347511713']
         buildConfigField 'String', 'ADMOB_BANNER_ID',
             '"' + (System.getenv('MDK_ADMOB_BANNER_ID') ?: 'ca-app-pub-3940256099942544/6300978111') + '"'
+        buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID',
+            '"' + (System.getenv('MDK_ADMOB_INTERSTITIAL_ID') ?: 'ca-app-pub-3940256099942544/1033173712') + '"'
         // Producto in-app (no consumible) creado en Play Console: «Quitar anuncios», 1.99 USD.
         buildConfigField 'String', 'REMOVE_ADS_PRODUCT_ID', '"remove_ads"'
         minSdk 24
-        targetSdk 34
-        versionCode vMajor * 10000 + vMinor * 100 + vPatch
+        targetSdk 36
+        // Play exige un versionCode mayor en cada subida: CI lo pasa (número de ejecución).
+        versionCode System.getenv('MDK_VERSION_CODE') ? System.getenv('MDK_VERSION_CODE').toInteger() : vMajor * 10000 + vMinor * 100 + vPatch
         versionName pkg.version
     }
 
@@ -67,6 +70,7 @@ android {
 dependencies {
     implementation 'com.google.android.gms:play-services-ads:23.6.0'
     implementation 'com.android.billingclient:billing:7.1.1'
+    implementation 'com.google.android.ump:user-messaging-platform:3.1.0'
 }
 
 // La UI es la misma carpeta src/ de la app de escritorio, sin copias en el repo.

@@ -18,7 +18,7 @@
   window.__mdkAds = () => {};
 
   window.mdk = {
-    openFile: () => call((id) => native.openFile(id)),
+    openFile: () => call((id) => native.openFile(id)).then((res) => { if (!res.cancelled) native.documentOpened(); return res; }),
     openPath: () => Promise.resolve({ cancelled: true }),
     saveFile: (content, filePath, saveAs) =>
       call((id) => native.saveFile(id, content, filePath || '', !!saveAs, S()['dialog.defaultFileName'])),
@@ -48,7 +48,7 @@
   };
 
   // Archivo abierto desde el gestor de archivos (intent VIEW).
-  window.__mdkOpenFile = (payload) => { if (openCb) openCb(payload); else queuedOpen = payload; };
+  window.__mdkOpenFile = (payload) => { native.documentOpened(); if (openCb) openCb(payload); else queuedOpen = payload; };
 
   // Botón «atrás»: cierra un diálogo abierto; si no, guarda lo pendiente y sale (igual que cerrar la ventana).
   window.__mdkBack = () => {
@@ -79,7 +79,19 @@
     adsBtn.hidden = true;
     adsBtn.addEventListener('click', () => native.buyRemoveAds());
     openBtn.parentNode.querySelector('[data-action="save"]').after(adsBtn);
-    window.__mdkAds = (removed, price) => {
+
+    // «Privacidad de anuncios» (UMP): solo donde la ley lo exige (EEE / Reino Unido).
+    const privBtn = mk('', '🔒', '');
+    privBtn.hidden = true;
+    privBtn.addEventListener('click', () => native.privacyOptions());
+    adsBtn.after(privBtn);
+
+    // Un documento nuevo (pestaña +) también cuenta para el intersticial.
+    document.querySelectorAll('[data-action="new-tab"]').forEach((b) => b.addEventListener('click', () => native.documentOpened()));
+
+    window.__mdkAds = (removed, price, privacy) => {
+      privBtn.hidden = !privacy;
+      privBtn.title = native.getLanguage() === 'es' ? 'Privacidad de anuncios' : 'Ad privacy options';
       adsBtn.hidden = removed;
       const es = native.getLanguage() === 'es';
       adsBtn.title = (es ? 'Quitar anuncios' : 'Remove ads') + (price ? ' · ' + price : '');

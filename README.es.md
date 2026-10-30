@@ -52,7 +52,7 @@ Esto abre la app en una ventana Electron sobre el código en `src/`.
 
 ## Android (MD Kraft)
 
-La edición Android se publica como **MD Kraft Markdown Editor** (`com.vdcprocesslab.mdkraft`; el nombre «MDK» ya existe en Google Play). Muestra un banner de anuncios (AdMob) y ofrece una compra única dentro de la app, **Quitar anuncios** (US$ 1,99, id de producto `remove_ads`). La app de Windows sigue sin anuncios.
+La edición Android se publica como **MD Kraft Markdown Editor** (`com.vdcprocesslab.mdkraft`; el nombre «MDK» ya existe en Google Play). Muestra un banner de anuncios (AdMob) y ofrece una compra única dentro de la app, **Quitar anuncios** (US$ 1,99, id de producto `remove_ads`). La app de Windows sigue sin anuncios. Siempre hay un banner; cada 5 documentos abiertos o creados aparece un anuncio a pantalla completa (puede ser video; mínimo 3 minutos entre uno y otro, nunca mientras escribes). Guía paso a paso para publicar (AdMob, Play Console, pruebas): [`manual_android_para_dummies.md`](./manual_android_para_dummies.md).
 
 `android/` envuelve la misma interfaz de `src/` en un WebView nativo (sin Capacitor ni
 dependencias extra; la versión sale de `package.json`). Abrir/guardar usan el selector de
@@ -67,7 +67,7 @@ El APK lo compila GitHub Actions (`.github/workflows/android.yml`): descarga
 cd android && ./gradlew assembleRelease   # -> app/build/outputs/apk/release/
 ```
 
-Los anuncios usan IDs de **prueba** de Google hasta que definas los secrets `MDK_ADMOB_APP_ID` / `MDK_ADMOB_BANNER_ID`, y el producto `remove_ads` debe existir en Play Console (precio US$ 1,99) para que la compra funcione. Sin secrets de firma el APK se firma con una clave de depuración (sirve para instalar
+Los anuncios usan IDs de **prueba** de Google hasta que definas los secrets `MDK_ADMOB_APP_ID` / `MDK_ADMOB_BANNER_ID` / `MDK_ADMOB_INTERSTITIAL_ID`, y el producto `remove_ads` debe existir en Play Console (precio US$ 1,99) para que la compra funcione. Sin secrets de firma el APK se firma con una clave de depuración (sirve para instalar
 directo, pero no actualiza sobre un build hecho con otra clave). Ver el encabezado del workflow.
 
 ## Generar el ejecutable de Windows
