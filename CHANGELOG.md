@@ -9,7 +9,8 @@ la app muestre lo mismo.
 
 ## Sin publicar
 
-- Nuevo: MDK para Android (`android/`). Misma interfaz de escritorio en un WebView, con
+- Nuevo: MD Kraft Markdown Editor, la edición Android (`android/`; id `com.vdcprocesslab.mdkraft`).
+  Banner de AdMob y compra única «Quitar anuncios» (US$ 1,99, Play Billing). Misma interfaz de escritorio en un WebView, con
   selector de archivos del sistema, botones Guardar / Guardar como y exportación a PDF por
   el diálogo de impresión de Android. APK compilado por GitHub Actions (`android.yml`).
 

@@ -14,6 +14,8 @@ import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.provider.OpenableColumns;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -45,6 +47,8 @@ public class MainActivity extends Activity {
     private int pendingCallId = -1;         // llamada JS esperando el resultado del selector
     private String pendingSaveContent = null;
     private String pendingSaveName = null;
+    private Monetization monetization;
+    private String adsState = "false,null"; // último estado enviado a JS (se reenvía al cargar la página)
     private WebView printView;              // referencia viva mientras el sistema imprime
 
     // Las rutas que ve el renderer son nombres de archivo; aquí se resuelven a su Uri.
@@ -54,8 +58,18 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         web = new WebView(this);
-        web.setLayoutParams(new ViewGroup.LayoutParams(-1, -1));
-        setContentView(web);
+        FrameLayout adBar = new FrameLayout(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.addView(web, new LinearLayout.LayoutParams(-1, 0, 1f));
+        root.addView(adBar, new LinearLayout.LayoutParams(-1, ViewGroup.LayoutParams.WRAP_CONTENT));
+        setContentView(root);
+
+        monetization = new Monetization(this, adBar, (removed, price) -> {
+            adsState = removed + "," + (price == null ? "null" : JSONObject.quote(price));
+            if (pageReady) js("window.__mdkAds(" + adsState + ")");
+        });
+        monetization.start();
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -80,6 +94,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 pageReady = true;
+                js("window.__mdkAds(" + adsState + ")");
                 if (pendingOpen != null) { js("window.__mdkOpenFile(" + pendingOpen + ")"); pendingOpen = null; }
             }
         });
@@ -97,6 +112,10 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         if (pageReady) js("window.__mdkBack()"); else finish();
     }
+
+    @Override protected void onPause() { monetization.pause(); super.onPause(); }
+    @Override protected void onResume() { super.onResume(); monetization.resume(); }
+    @Override protected void onDestroy() { monetization.destroy(); super.onDestroy(); }
 
     private void js(String code) {
         web.post(() -> web.evaluateJavascript(code, null));
@@ -279,6 +298,11 @@ public class MainActivity extends Activity {
                 });
                 printView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
             });
+        }
+
+        @JavascriptInterface
+        public void buyRemoveAds() {
+            runOnUiThread(monetization::buy);
         }
 
         @JavascriptInterface

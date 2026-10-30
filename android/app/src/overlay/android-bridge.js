@@ -15,6 +15,7 @@
   let dirty = false;
   let langCb = null, menuCb = null, openCb = null;
   let queuedOpen = null;
+  window.__mdkAds = () => {};
 
   window.mdk = {
     openFile: () => call((id) => native.openFile(id)),
@@ -72,5 +73,21 @@
       return b;
     };
     openBtn.after(mk('save-as', '⇩…', 'Save as'), mk('save', '💾', 'Save'));
+
+    // Compra única «Quitar anuncios»; solo visible mientras haya anuncios.
+    const adsBtn = mk('', '🚫 Ads', '');
+    adsBtn.hidden = true;
+    adsBtn.addEventListener('click', () => native.buyRemoveAds());
+    openBtn.parentNode.querySelector('[data-action="save"]').after(adsBtn);
+    window.__mdkAds = (removed, price) => {
+      adsBtn.hidden = removed;
+      const es = native.getLanguage() === 'es';
+      adsBtn.title = (es ? 'Quitar anuncios' : 'Remove ads') + (price ? ' · ' + price : '');
+      adsBtn.textContent = '🚫 ' + (price || 'Ads');
+    };
   }
+
+  // Marca de la versión Android (en Play Store «MDK» ya existe).
+  document.title = 'MD Kraft';
+  document.querySelectorAll('.brand-name, .modal-card--info .modal-title').forEach((el) => { el.textContent = 'MD Kraft'; });
 })();

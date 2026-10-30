@@ -1,6 +1,6 @@
 name: Android
 
-# Compila el APK de MDK para Android (carpeta android/, reutiliza la UI de src/).
+# Compila el APK de MD Kraft (MDK para Android) (carpeta android/, reutiliza la UI de src/).
 #  - En cada PR/push que toque Android: genera el APK y lo sube como artefacto.
 #  - Al pushear un tag "vX.Y.Z": además lo adjunta al GitHub Release (junto a los .exe).
 #  - Manual: Actions > Android > Run workflow.
@@ -10,6 +10,7 @@ name: Android
 # sobre uno anterior). Para APKs actualizables, crea una keystore una sola vez y
 # guarda estos secrets: MDK_KEYSTORE_BASE64 (base64 del .jks), MDK_KEYSTORE_PASSWORD,
 # MDK_KEY_ALIAS, MDK_KEY_PASSWORD.
+# Anuncios: sin MDK_ADMOB_APP_ID / MDK_ADMOB_BANNER_ID salen anuncios de PRUEBA de Google.
 
 on:
   push:
@@ -31,6 +32,8 @@ jobs:
       MDK_KEYSTORE_PASSWORD: ${{ secrets.MDK_KEYSTORE_PASSWORD }}
       MDK_KEY_ALIAS: ${{ secrets.MDK_KEY_ALIAS }}
       MDK_KEY_PASSWORD: ${{ secrets.MDK_KEY_PASSWORD }}
+      MDK_ADMOB_APP_ID: ${{ secrets.MDK_ADMOB_APP_ID }}
+      MDK_ADMOB_BANNER_ID: ${{ secrets.MDK_ADMOB_BANNER_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -52,17 +55,17 @@ jobs:
         run: ./gradlew --no-daemon assembleRelease
 
       - name: Renombrar APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk MDK-android.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk MDKraft.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MDK-android
-          path: MDK-android.apk
+          name: MDKraft
+          path: MDKraft.apk
 
       - name: Adjuntar al GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: MDK-android.apk
+          files: MDKraft.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
