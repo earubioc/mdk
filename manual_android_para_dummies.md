@@ -126,12 +126,18 @@ Anota los **tres** IDs. No los pierdas ni los pegues en el código: van como sec
 ### 3.4 Datos de pago e impuestos
 
 1. Menú **Pagos → Información de pago**: nombre, dirección y forma de cobro.
-2. Cuando tus ganancias lleguen a **US$ 10**, Google envía por **correo postal** un **PIN**
-   de verificación de dirección; hay que ingresarlo en AdMob. Es lento (semanas): ten
-   presente que la dirección debe ser real y correcta.
+2. Hay **dos umbrales distintos**, no los confundas:
+   - **US$ 10: verificación de dirección.** Al llegar a ese monto Google envía por **correo
+     postal** un **PIN** que debes ingresar en AdMob. Es lento (semanas): la dirección debe
+     ser real y correcta. (**Verifica**: en algunos casos el PIN llega antes o no se pide.)
+   - **US$ 100: pago.** Es tu **umbral de pago** (confirmado en tu cuenta de pagos de
+     AdSense Colombia): Google te paga **una vez al mes, si el saldo acumulado es de al
+     menos US$ 100**. Si no llegas, el saldo se acumula al mes siguiente.
 3. **Información fiscal**: AdMob te pide un formulario de impuestos (para quien no vive en
    EE. UU. es el equivalente al W-8BEN). Sigue el asistente.
-4. El pago se hace cuando acumulas **US$ 100** (umbral por defecto, **verifica**).
+4. Tu cuenta de pagos de AdMob es la misma de **AdSense (Colombia)** y su ID es
+   `pub-…` (el que ves en *Configuración* de la cuenta de pagos). Lo necesitarás más
+   adelante para el archivo `app-ads.txt` (parte 10).
 
 ### 3.5 Mensaje de consentimiento (obligatorio para Europa)
 
