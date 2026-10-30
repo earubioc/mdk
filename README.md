@@ -50,6 +50,25 @@ npm start
 
 This opens the app in an Electron window over the code in `src/`.
 
+## Android (MD Kraft)
+
+The Android edition is published as **MD Kraft Markdown Editor** (`com.vdcprocesslab.mdkraft`; the name "MDK" is already taken on Google Play). It shows a banner ad (AdMob) and offers a one-time in-app purchase, **Remove ads** (US$ 1.99, product id `remove_ads`). The Windows app stays ad-free. A banner is always shown; a full-screen (possibly video) ad appears every 5 opened/created documents (min. 3 minutes apart, never while typing). Step-by-step publishing guide (AdMob, Play Console, testing): [`manual_android_para_dummies.md`](./manual_android_para_dummies.md) (Spanish).
+
+`android/` wraps the same UI from `src/` in a native WebView (no Capacitor, no extra
+dependencies; version comes from `package.json`). Open/save use the system file picker;
+**Export PDF** and **Print** open Android's print dialog (choose "Save as PDF").
+
+The APK is built by GitHub Actions (`.github/workflows/android.yml`): download
+`MDKraft.apk` from the run's artifacts, or from the Release for a `vX.Y.Z` tag.
+To build locally you need JDK 17 and the Android SDK (platform 34):
+
+```bash
+cd android && ./gradlew assembleRelease   # -> app/build/outputs/apk/release/
+```
+
+Ads use Google's **test** IDs until you set the `MDK_ADMOB_APP_ID` / `MDK_ADMOB_BANNER_ID` / `MDK_ADMOB_INTERSTITIAL_ID` secrets, and the `remove_ads` product must exist in Play Console (price US$ 1.99) before the purchase works. Without signing secrets the APK is signed with a debug key (fine for sideloading, but it
+cannot update over a build made with another key). See the header of the workflow.
+
 ## Building the Windows executable
 
 ```bash
@@ -127,3 +146,8 @@ MDK/
 
 MIT, see [`LICENSE`](./LICENSE). Free to use, copy, modify, and redistribute, including
 commercially, with the sole condition of keeping the copyright notice.
+
+**Exception:** the `android/` folder (MD Kraft for Android: ads and in-app purchase setup)
+has its own license, [`android/LICENSE`](./android/LICENSE): you may read and build it for
+personal use, but not publish or redistribute it, nor reuse its name, icon or ad/billing
+configuration. The editor interface in `src/` stays MIT.

@@ -1,0 +1,52 @@
+MD Kraft for Android: license for the contents of the android/ folder
+Licencia del contenido de la carpeta android/ (MD Kraft para Android)
+
+Copyright (c) 2026 Edgar Augusto Rubio Castro / VDC Process Lab. All rights reserved.
+Todos los derechos reservados.
+
+The rest of this repository (including the editor interface in src/) is under the
+MIT License, see ../LICENSE. This license applies ONLY to the files in android/.
+El resto del repositorio (incluida la interfaz del editor en src/) está bajo la
+licencia MIT, ver ../LICENSE. Esta licencia se aplica SOLO a los archivos de android/.
+
+1. Permitted / Permitido
+   You may read this source code, and build it on your own device for personal use,
+   study, security review, or to propose changes to this repository.
+   Puedes leer este código, compilarlo en tu propio dispositivo para uso personal,
+   estudio o revisión de seguridad, y proponer cambios a este repositorio.
+
+2. Not permitted without written permission / No permitido sin permiso escrito
+   a) Publishing or distributing this app, or any modified version or derivative of the
+      files in android/, in any app store (Google Play, Amazon, Samsung, F-Droid, etc.),
+      website, or other channel, whether free or paid.
+      Publicar o distribuir esta app, o cualquier versión modificada o derivada de los
+      archivos de android/, en tiendas de apps, sitios web u otros canales, gratis o de pago.
+   b) Using the names "MD Kraft", "MDK" (for the Android app) or "VDC Process Lab", or the
+      app's icon and branding, for any other product.
+      Usar los nombres "MD Kraft", "MDK" (para la app de Android) o "VDC Process Lab", ni el
+      ícono y la marca de la app, en otro producto.
+   c) Using the advertising or in-app purchase configuration of this project (AdMob
+      identifiers, Play Billing product ids, signing keys) for any other app.
+      Usar la configuración de publicidad o compras de este proyecto (identificadores de
+      AdMob, ids de productos de Play Billing, llaves de firma) en otra app.
+   d) Removing this notice.
+      Eliminar este aviso.
+
+3. Third-party components / Componentes de terceros
+   - gradlew, gradlew.bat and gradle/wrapper/* come from the Gradle project and remain
+     under the Apache License 2.0.
+     provienen del proyecto Gradle y siguen bajo la licencia Apache 2.0.
+   - The editor interface in src/ (bundled into the app at build time) remains under the
+     MIT License; this license does not restrict what the MIT License allows for src/.
+     La interfaz del editor en src/ (incluida en la app al compilar) sigue bajo la
+     licencia MIT; esta licencia no restringe lo que la MIT permite para src/.
+
+4. No warranty / Sin garantía
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+   EL SOFTWARE SE ENTREGA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO.
+
+5. Contributions / Contribuciones
+   By submitting a contribution to files in android/ you grant the copyright holder the
+   right to use it under this license and any other license the holder chooses.
+   Al enviar una contribución a archivos de android/ otorgas al titular el derecho de
+   usarla bajo esta licencia y cualquier otra que el titular elija.
