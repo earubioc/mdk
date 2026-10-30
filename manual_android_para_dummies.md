@@ -104,6 +104,11 @@ ajusta con datos.
 
 Dentro de la app en AdMob: **Bloques de anuncios → Agregar bloque de anuncios**.
 
+> **Casilla "Ofertas para socios" / "Utilizo esta unidad para ofertas en tiempo real en otra
+> plataforma de mediación": déjala SIN marcar** en los dos bloques. Es solo para quien usa una
+> mediación que no es AdMob; si la marcas, la unidad no puede usar las campañas de AdMob ni
+> la demanda de Google (o sea, no ganarías con ella) y **no se puede cambiar después**.
+
 **Bloque 1: banner**
 1. Formato: **Banner**.
 2. Nombre: `mdkraft_banner`.
