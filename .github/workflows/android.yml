@@ -44,7 +44,12 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
+      # El runner ya trae el SDK de Android; solo se aceptan las licencias para que
+      # Gradle pueda bajar la plataforma 36 y las build-tools que le falten.
+      - name: Aceptar licencias del SDK de Android
+        run: |
+          SDKMANAGER=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | head -1)
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
 
       - name: Preparar keystore (si hay secrets)
         if: ${{ env.MDK_KEYSTORE_BASE64 != '' }}
