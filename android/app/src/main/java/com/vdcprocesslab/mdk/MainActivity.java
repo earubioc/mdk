@@ -16,7 +16,6 @@ import android.print.PrintManager;
 import android.provider.OpenableColumns;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
@@ -60,7 +59,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         web = new WebView(this);
-        FrameLayout adBar = new FrameLayout(this);
+        LinearLayout adBar = new LinearLayout(this);
+        adBar.setOrientation(LinearLayout.VERTICAL);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.addView(web, new LinearLayout.LayoutParams(-1, 0, 1f));

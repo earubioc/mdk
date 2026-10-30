@@ -12,7 +12,9 @@ la app muestre lo mismo.
 - Nuevo: MD Kraft Markdown Editor, la edición Android (`android/`; id `com.vdcprocesslab.mdkraft`).
   Banner de AdMob, anuncio a pantalla completa cada 5 documentos (con consentimiento UMP)
   y compra única «Quitar anuncios» (US$ 1,99, Play Billing). El workflow genera también el
-  `.aab` que exige Google Play; targetSdk 36. Guía: `manual_android_para_dummies.md`. Misma interfaz de escritorio en un WebView, con
+  `.aab` que exige Google Play; targetSdk 36. Guía: `manual_android_para_dummies.md`.
+- Android: diseño para teléfono (barra de formato abajo, «Ambos» apilado, tablas con
+  desplazamiento horizontal, índice como panel, texto sin justificar). Misma interfaz de escritorio en un WebView, con
   selector de archivos del sistema, botones Guardar / Guardar como y exportación a PDF por
   el diálogo de impresión de Android. APK compilado por GitHub Actions (`android.yml`).
 

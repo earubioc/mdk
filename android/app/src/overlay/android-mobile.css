@@ -1,12 +1,47 @@
-/* Ajustes mínimos para pantallas táctiles estrechas; no toca el diseño de escritorio. */
+/* Ajustes para pantallas táctiles estrechas (teléfono). No toca el diseño de escritorio. */
 html { -webkit-text-size-adjust: 100%; }
 .tabbar, .app-toolbar { overflow-x: auto; scrollbar-width: none; }
 .tabbar::-webkit-scrollbar, .app-toolbar::-webkit-scrollbar { display: none; }
 .tabbar > *, .app-toolbar > * { flex-shrink: 0; }
 .tool-spacer { display: none; }
 .icon-btn, .tool-btn { min-width: 40px; min-height: 40px; }
-.status-bar { padding-bottom: env(safe-area-inset-bottom); }
+
 @media (max-width: 700px) {
   .brand { display: none; }
-  .modal-card { max-width: 96vw; max-height: 92vh; overflow-y: auto; }
+
+  /* Orden vertical: pestañas · (búsqueda) · documento · barra de formato · estado.
+     La barra de formato queda abajo, al alcance del pulgar y pegada al teclado. */
+  .tabbar { order: 0; padding: 4px 6px; gap: 2px; }
+  .searchbar { order: 1; }
+  .workspace { order: 2; position: relative; flex-direction: column; }
+  .app-toolbar { order: 3; padding: 4px 6px; gap: 4px; border-bottom: none; border-top: 1px solid var(--rule); }
+  .status-bar { order: 4; padding: 3px 10px; }
+  #statusPath { max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Herramientas que no tienen sentido en una pantalla de teléfono */
+  [data-action="show-compare"], #sheetToggle { display: none; }
+
+  /* «Ambos» apila editor arriba y vista previa abajo (no dos columnas de 150 px) */
+  .pane--editor, .pane--preview { flex: 1 1 0 !important; min-width: 0; min-height: 0; width: 100%; border-right: none; }
+  .pane--editor { border-bottom: 1px solid var(--rule); }
+  .pane-divider { display: none !important; }
+
+  .editor { padding: 14px; line-height: 1.6; }
+  .preview { padding: 16px 14px; }
+  .preview p { text-align: left; }
+  .preview h1 { font-size: 20pt; }
+  .preview h2 { font-size: 15pt; }
+  .preview h3 { font-size: 12pt; }
+  .preview pre { overflow-x: auto; }
+
+  /* Tablas: ancho natural con desplazamiento horizontal (nada de columnas de 30 px) */
+  .preview table { display: block; overflow-x: auto; table-layout: auto !important; width: 100%; -webkit-overflow-scrolling: touch; }
+  .preview th, .preview td { width: auto !important; min-width: 110px; max-width: 280px; word-break: normal; overflow-wrap: break-word; vertical-align: top; }
+  .preview th:first-child, .preview td:first-child { min-width: 36px; }
+  .col-resizer { display: none; }
+
+  /* Índice del documento como panel que se superpone */
+  .sidebar { position: absolute; z-index: 20; top: 0; bottom: 0; left: 0; width: 78vw; max-width: 320px; box-shadow: 4px 0 16px rgba(0,0,0,.3); }
+
+  .modal-card, .modal-card--wide, .modal-card--info { width: calc(100vw - 24px); max-width: 460px; max-height: 92vh; overflow-y: auto; }
 }

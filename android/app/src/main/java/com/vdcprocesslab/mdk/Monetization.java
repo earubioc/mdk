@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
+import android.graphics.Color;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.BillingClient;
@@ -17,6 +19,7 @@ import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
 import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
@@ -60,6 +63,11 @@ class Monetization {
     private ConsentInformation consent;
     private boolean adsRemoved;
     private boolean adsStarted;
+
+    // Diagnóstico visible SOLO en builds con IDs de prueba de Google (nunca en producción).
+    private final boolean testBuild = BuildConfig.ADMOB_BANNER_ID.startsWith("ca-app-pub-3940256099942544");
+    private TextView diag;
+    private String dConsent = "consent: …", dBanner = "banner: -", dInter = "intersticial: -";
     private long lastInterstitial = SystemClock.elapsedRealtime();   // sin intersticial en los primeros minutos
 
     Monetization(Activity activity, ViewGroup adContainer, Listener listener) {
@@ -71,7 +79,23 @@ class Monetization {
         this.adsRemoved = prefs.getBoolean("adsRemoved", false);
     }
 
+    private void diag() {
+        if (diag == null) return;
+        int n = prefs.getInt("docsOpened", 0);
+        String text = dConsent + " | " + dBanner + " | " + dInter + " | docs " + n + "/" + INTERSTITIAL_EVERY;
+        activity.runOnUiThread(() -> diag.setText(text));
+    }
+
     void start() {
+        if (testBuild && !adsRemoved) {
+            diag = new TextView(activity);
+            diag.setTextSize(9);
+            diag.setTextColor(Color.LTGRAY);
+            diag.setBackgroundColor(0xFF222222);
+            diag.setPadding(12, 2, 12, 2);
+            adContainer.addView(diag, 0);
+            diag();
+        }
         if (!adsRemoved) requestConsent();
         notifyState();
 
@@ -116,6 +140,7 @@ class Monetization {
             interstitial.show(activity);
         }
         prefs.edit().putInt("docsOpened", n).apply();
+        diag();
     }
 
     void showPrivacyOptions() {
@@ -144,10 +169,17 @@ class Monetization {
         initAds();   // consentimiento ya guardado de una sesión anterior
         consent.requestConsentInfoUpdate(activity, new ConsentRequestParameters.Builder().build(),
                 () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity, formError -> {
+                    dConsent = "consent: estado " + consent.getConsentStatus() + " ads=" + consent.canRequestAds()
+                            + (formError != null ? " (" + formError.getMessage() + ")" : "");
+                    diag();
                     initAds();
                     notifyState();
                 }),
-                error -> initAds());
+                error -> {
+                    dConsent = "consent ERROR " + error.getErrorCode() + ": " + error.getMessage();
+                    diag();
+                    initAds();
+                });
     }
 
     private void initAds() {
@@ -165,6 +197,8 @@ class Monetization {
                     @Override
                     public void onAdLoaded(InterstitialAd ad) {
                         interstitial = ad;
+                        dInter = "intersticial: listo";
+                        diag();
                         ad.setFullScreenContentCallback(new FullScreenContentCallback() {
                             @Override
                             public void onAdDismissedFullScreenContent() { interstitial = null; loadInterstitial(); }
@@ -175,7 +209,11 @@ class Monetization {
                     }
 
                     @Override
-                    public void onAdFailedToLoad(LoadAdError error) { interstitial = null; }
+                    public void onAdFailedToLoad(LoadAdError error) {
+                        interstitial = null;
+                        dInter = "intersticial ERROR " + error.getCode() + ": " + error.getMessage();
+                        diag();
+                    }
                 });
     }
 
@@ -185,6 +223,16 @@ class Monetization {
         float widthDp = activity.getResources().getDisplayMetrics().widthPixels
                 / activity.getResources().getDisplayMetrics().density;
         adView.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, (int) widthDp));
+        adView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() { dBanner = "banner: OK"; diag(); }
+
+            @Override
+            public void onAdFailedToLoad(LoadAdError error) {
+                dBanner = "banner ERROR " + error.getCode() + ": " + error.getMessage();
+                diag();
+            }
+        });
         adContainer.addView(adView);
         adView.loadAd(new AdRequest.Builder().build());
     }

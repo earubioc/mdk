@@ -83,7 +83,7 @@ tasks.register('syncWebAssets', Copy) {
         filter { line ->
             line.contains('<script src="renderer.js">')
                 ? '<script>var module = { exports: {} };</script>\n<script src="i18n/strings.js"></script>\n<script src="android-bridge.js"></script>\n' + line
-                : line.replace('</head>', '<link rel="stylesheet" href="android-mobile.css">\n</head>')
+                : line.replace('</head>', '<meta name="viewport" content="width=device-width, initial-scale=1">\n<link rel="stylesheet" href="android-mobile.css">\n</head>')
         }
     }
     from('src/overlay')

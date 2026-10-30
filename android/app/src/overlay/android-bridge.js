@@ -99,6 +99,15 @@
     };
   }
 
+  // En el teléfono el índice es un panel superpuesto: se cierra al elegir un encabezado.
+  const outline = document.getElementById('outlineList');
+  if (outline) {
+    outline.addEventListener('click', () => {
+      const side = document.getElementById('sidebar');
+      if (window.innerWidth <= 700 && side && !side.hidden) document.getElementById('sidebarToggle').click();
+    });
+  }
+
   // Marca de la versión Android (en Play Store «MDK» ya existe).
   document.title = 'MD Kraft';
   document.querySelectorAll('.brand-name, .modal-card--info .modal-title').forEach((el) => { el.textContent = 'MD Kraft'; });

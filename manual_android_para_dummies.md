@@ -271,7 +271,11 @@ distinto en cada subida.
    - [ ] Abre, escribe y la vista previa funciona.
    - [ ] **Abrir** un archivo `.md` y **guardar** (botón 💾) y **guardar como**.
    - [ ] **Exportar PDF** abre el diálogo de impresión → "Guardar como PDF".
-   - [ ] Abajo se ve un banner con la etiqueta **Test Ad**.
+   - [ ] Abajo se ve una **franja gris con texto pequeño** (solo en versiones de prueba) y
+         debajo un banner con la etiqueta **Test Ad**. La franja dice, por ejemplo:
+         `consent: estado 1 ads=true | banner: OK | intersticial: listo | docs 2/5`.
+         Si el banner no sale, **ese texto dice por qué** (`banner ERROR 3: No fill`, `consent
+         ERROR …`): mándame una captura. La franja no existe en la versión de producción.
    - [ ] Abre/crea **5 documentos** (esperando 3 minutos desde que abriste la app):
          aparece un anuncio a pantalla completa (de prueba).
    - [ ] Aparece el botón **🚫** (el precio sale cuando el producto exista en Play,
