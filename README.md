@@ -50,6 +50,23 @@ npm start
 
 This opens the app in an Electron window over the code in `src/`.
 
+## Android
+
+`android/` wraps the same UI from `src/` in a native WebView (no Capacitor, no extra
+dependencies; version comes from `package.json`). Open/save use the system file picker;
+**Export PDF** and **Print** open Android's print dialog (choose "Save as PDF").
+
+The APK is built by GitHub Actions (`.github/workflows/android.yml`): download
+`MDK-android.apk` from the run's artifacts, or from the Release for a `vX.Y.Z` tag.
+To build locally you need JDK 17 and the Android SDK (platform 34):
+
+```bash
+cd android && ./gradlew assembleRelease   # -> app/build/outputs/apk/release/
+```
+
+Without signing secrets the APK is signed with a debug key (fine for sideloading, but it
+cannot update over a build made with another key). See the header of the workflow.
+
 ## Building the Windows executable
 
 ```bash

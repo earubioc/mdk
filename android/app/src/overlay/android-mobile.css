@@ -1,0 +1,12 @@
+/* Ajustes mínimos para pantallas táctiles estrechas; no toca el diseño de escritorio. */
+html { -webkit-text-size-adjust: 100%; }
+.tabbar, .app-toolbar { overflow-x: auto; scrollbar-width: none; }
+.tabbar::-webkit-scrollbar, .app-toolbar::-webkit-scrollbar { display: none; }
+.tabbar > *, .app-toolbar > * { flex-shrink: 0; }
+.tool-spacer { display: none; }
+.icon-btn, .tool-btn { min-width: 40px; min-height: 40px; }
+.status-bar { padding-bottom: env(safe-area-inset-bottom); }
+@media (max-width: 700px) {
+  .brand { display: none; }
+  .modal-card { max-width: 96vw; max-height: 92vh; overflow-y: auto; }
+}

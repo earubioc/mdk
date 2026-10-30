@@ -7,6 +7,12 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## Sin publicar
+
+- Nuevo: MDK para Android (`android/`). Misma interfaz de escritorio en un WebView, con
+  selector de archivos del sistema, botones Guardar / Guardar como y exportación a PDF por
+  el diálogo de impresión de Android. APK compilado por GitHub Actions (`android.yml`).
+
 ## 3.0.0
 
 - Nuevo: las pestañas se reordenan arrastrándolas.

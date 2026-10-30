@@ -1,0 +1,72 @@
+plugins {
+    id 'com.android.application'
+}
+
+// La versión se toma de package.json: una sola fuente para Windows y Android.
+def pkg = new groovy.json.JsonSlurper().parse(file('../../package.json'))
+def (vMajor, vMinor, vPatch) = pkg.version.tokenize('.').collect { it.toInteger() }
+
+android {
+    namespace 'com.vdcprocesslab.mdk'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.vdcprocesslab.mdk'
+        minSdk 24
+        targetSdk 34
+        versionCode vMajor * 10000 + vMinor * 100 + vPatch
+        versionName pkg.version
+    }
+
+    // Sin keystore propia se firma con la clave de depuración (APK instalable
+    // por sideload). Para publicar: exportar MDK_KEYSTORE, MDK_KEYSTORE_PASSWORD,
+    // MDK_KEY_ALIAS y MDK_KEY_PASSWORD.
+    signingConfigs {
+        release {
+            if (System.getenv('MDK_KEYSTORE')) {
+                storeFile file(System.getenv('MDK_KEYSTORE'))
+                storePassword System.getenv('MDK_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('MDK_KEY_ALIAS')
+                keyPassword System.getenv('MDK_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig System.getenv('MDK_KEYSTORE') ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    lint {
+        checkReleaseBuilds false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main.assets.srcDirs += layout.buildDirectory.dir('generated/webassets')
+    }
+}
+
+// La UI es la misma carpeta src/ de la app de escritorio, sin copias en el repo.
+// Se empaqueta como assets y se le inyecta el puente Android (window.mdk).
+tasks.register('syncWebAssets', Copy) {
+    from('../../src') {
+        exclude 'index.html'
+    }
+    from('../../src/index.html') {
+        filter { line ->
+            line.contains('<script src="renderer.js">')
+                ? '<script>var module = { exports: {} };</script>\n<script src="i18n/strings.js"></script>\n<script src="android-bridge.js"></script>\n' + line
+                : line.replace('</head>', '<link rel="stylesheet" href="android-mobile.css">\n</head>')
+        }
+    }
+    from('src/overlay')
+    into layout.buildDirectory.dir('generated/webassets')
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn 'syncWebAssets' }

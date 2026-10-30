@@ -50,6 +50,24 @@ npm start
 
 Esto abre la app en una ventana Electron sobre el código en `src/`.
 
+## Android
+
+`android/` envuelve la misma interfaz de `src/` en un WebView nativo (sin Capacitor ni
+dependencias extra; la versión sale de `package.json`). Abrir/guardar usan el selector de
+archivos del sistema; **Exportar PDF** e **Imprimir** abren el diálogo de impresión de
+Android (elige «Guardar como PDF»).
+
+El APK lo compila GitHub Actions (`.github/workflows/android.yml`): descarga
+`MDK-android.apk` de los artefactos de la ejecución, o del Release cuando se sube un tag
+`vX.Y.Z`. Para compilar en local necesitas JDK 17 y el SDK de Android (plataforma 34):
+
+```bash
+cd android && ./gradlew assembleRelease   # -> app/build/outputs/apk/release/
+```
+
+Sin secrets de firma el APK se firma con una clave de depuración (sirve para instalar
+directo, pero no actualiza sobre un build hecho con otra clave). Ver el encabezado del workflow.
+
 ## Generar el ejecutable de Windows
 
 ```bash
