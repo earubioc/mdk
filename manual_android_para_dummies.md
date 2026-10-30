@@ -162,18 +162,49 @@ Anota los **tres** IDs. No los pierdas ni los pegues en el código: van como sec
 
 ### 4.1 Crear la llave de firma (una sola vez en la vida)
 
-Android exige que cada app esté firmada con una llave. Se crea en tu computador.
+Android exige que cada app esté firmada con una llave. Se crea en tu computador con una
+herramienta de Java llamada `keytool`.
 
-1. Abre **PowerShell** y escribe (todo en una línea):
+**a) Instala Java (si PowerShell dice "el término 'keytool' no se reconoce")**
+
+1. Abre **PowerShell** y escribe:
+
+   ```
+   winget install EclipseAdoptium.Temurin.17.JDK
+   ```
+
+   (Si `winget` tampoco existe, descarga "Temurin 17 (LTS) JDK, Windows x64, .msi" desde
+   adoptium.net y ábrelo; en el instalador activa la opción **"Set JAVA_HOME variable"** y
+   **"Add to PATH"**.)
+2. **Cierra PowerShell y ábrelo de nuevo** (si no, no ve el programa recién instalado).
+3. Comprueba: `keytool -help`. Si muestra una lista de opciones, ya está.
+
+   Atajo: si tienes **Android Studio** instalado, ya trae `keytool`; úsalo con su ruta
+   completa: `& "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -help`.
+
+**b) Crea la llave, en una carpeta SEGURA (no en la del proyecto)**
+
+1. Crea una carpeta fuera del proyecto y entra a ella:
+
+   ```
+   mkdir $HOME\llaves-android
+   cd $HOME\llaves-android
+   ```
+
+   ⚠️ **No la crees dentro de `D:\IA_WORK\MDK`**: es la carpeta del código y un archivo
+   `.jks` ahí corre el riesgo de subirse a GitHub (el proyecto ya lo ignora, pero no
+   conviene arriesgarlo).
+2. Escribe (todo en una línea):
 
    ```
    keytool -genkeypair -v -keystore mdkraft-upload.jks -alias mdkraft -keyalg RSA -keysize 2048 -validity 10000
    ```
 
-2. Te pregunta una **contraseña** (invéntala larga y anótala), tu nombre, organización,
-   ciudad, etc. (puedes poner VDC Process Lab, Bogotá, CO), y confirmar con `yes`. Al final
-   pregunta la contraseña de la llave: pulsa Enter para usar la **misma**.
-3. Se crea el archivo `mdkraft-upload.jks` en la carpeta donde estás.
+3. Te pregunta una **contraseña** (invéntala larga y anótala; al escribirla **no se ve
+   nada en pantalla**, es normal), tu nombre, organización, ciudad, etc. (puedes poner
+   VDC Process Lab, Bogotá, CO), y confirmar con `yes`. Al final pregunta la contraseña de
+   la llave: pulsa Enter para usar la **misma**.
+4. Se crea el archivo `mdkraft-upload.jks` en esa carpeta.
 
 > ⚠️ **Haz copia de seguridad ya** del `.jks` y de las contraseñas (USB + gestor de
 > contraseñas). **Nunca lo subas al repositorio.** Si lo pierdes, Google puede restablecer
@@ -184,7 +215,7 @@ Android exige que cada app esté firmada con una llave. Se crea en tu computador
 GitHub solo guarda texto. En PowerShell:
 
 ```
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("mdkraft-upload.jks")) | Set-Clipboard
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("$HOME\llaves-android\mdkraft-upload.jks")) | Set-Clipboard
 ```
 
 Eso copia el texto al portapapeles (se pega en el siguiente paso).
