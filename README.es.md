@@ -153,3 +153,8 @@ MDK/
 
 MIT, ver [`LICENSE`](./LICENSE). Uso, copia, modificación y redistribución libres,
 incluso comercial, con la única condición de conservar el aviso de copyright.
+
+**Excepción:** la carpeta `android/` (MD Kraft para Android: anuncios y compra) tiene su
+propia licencia, [`android/LICENSE`](./android/LICENSE): puedes leerla y compilarla para
+uso personal, pero no publicarla ni redistribuirla, ni reutilizar su nombre, ícono o
+configuración de anuncios y compras. La interfaz del editor en `src/` sigue siendo MIT.
