@@ -14,7 +14,6 @@ import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
 import android.provider.OpenableColumns;
-import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.widget.LinearLayout;
 import android.webkit.JavascriptInterface;
@@ -65,8 +64,8 @@ public class MainActivity extends Activity {
     };
 
     private SharedPreferences prefs;
-    private Monetization monetization;
-    private String adsState = "false,null,false"; // último estado enviado a JS (se reenvía al cargar la página)
+    private ProUnlock pro;
+    private String proState = "false,null,false,false"; // último estado enviado a JS (se reenvía al cargar la página)
     private WebView printView;              // referencia viva mientras el sistema imprime
 
     // Las rutas que ve el renderer son nombres de archivo; aquí se resuelven a su Uri.
@@ -77,12 +76,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("mdk", Context.MODE_PRIVATE);
         web = new WebView(this);
-        LinearLayout adBar = new LinearLayout(this);
-        adBar.setOrientation(LinearLayout.VERTICAL);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.addView(web, new LinearLayout.LayoutParams(-1, 0, 1f));
-        root.addView(adBar, new LinearLayout.LayoutParams(-1, ViewGroup.LayoutParams.WRAP_CONTENT));
         // targetSdk 35+ dibuja a pantalla completa: se reservan las barras del sistema y el teclado.
         root.setBackgroundColor(0xFF222222);
         root.setOnApplyWindowInsetsListener((v, insets) -> {
@@ -98,11 +94,11 @@ public class MainActivity extends Activity {
         });
         setContentView(root);
 
-        monetization = new Monetization(this, adBar, (removed, price, privacy) -> {
-            adsState = removed + "," + (price == null ? "null" : JSONObject.quote(price)) + "," + privacy;
-            if (pageReady) js("window.__mdkAds(" + adsState + ")");
+        pro = new ProUnlock(this, (unlocked, price, testBuild, testOn) -> {
+            proState = unlocked + "," + (price == null ? "null" : JSONObject.quote(price)) + "," + testBuild + "," + testOn;
+            if (pageReady) js("window.__mdkPro(" + proState + ")");
         });
-        monetization.start();
+        pro.start();
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -127,7 +123,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 pageReady = true;
-                js("window.__mdkAds(" + adsState + ")");
+                js("window.__mdkPro(" + proState + ")");
                 if (pendingOpen != null) { js("window.__mdkOpenFile(" + pendingOpen + ")"); pendingOpen = null; }
             }
         });
@@ -146,9 +142,8 @@ public class MainActivity extends Activity {
         if (pageReady) js("window.__mdkBack()"); else finish();
     }
 
-    @Override protected void onPause() { monetization.pause(); super.onPause(); }
-    @Override protected void onResume() { super.onResume(); monetization.resume(); }
-    @Override protected void onDestroy() { monetization.destroy(); super.onDestroy(); }
+        @Override protected void onResume() { super.onResume(); pro.resume(); }
+    @Override protected void onDestroy() { pro.destroy(); super.onDestroy(); }
 
     private void js(String code) {
         web.post(() -> web.evaluateJavascript(code, null));
@@ -170,6 +165,10 @@ public class MainActivity extends Activity {
 
     private JSONObject fileJson(Uri uri, boolean withContent) throws Exception {
         String name = displayName(uri);
+        if (withContent && !isFree(name) && !pro.isPro()) {   // formato Pro sin desbloquear
+            askPro();
+            return new JSONObject().put("cancelled", true).put("proRequired", true);
+        }
         String key = name;
         for (int n = 2; files.containsKey(key) && !files.get(key).equals(uri); n++) key = n + "/" + name;
         files.put(key, uri);
@@ -188,6 +187,37 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) { }
         String seg = uri.getLastPathSegment();
         return seg == null ? "document.md" : seg.substring(seg.lastIndexOf('/') + 1);
+    }
+
+    // ---- MD Kraft Pro: Markdown y texto son gratis; el resto de formatos requiere Pro ----
+
+    private boolean es() {
+        String l = prefs.getString("language", null);
+        if (l == null) l = Locale.getDefault().getLanguage();
+        return "es".equals(l);
+    }
+
+    private String t(String es, String en) { return es() ? es : en; }
+
+    private static boolean isFree(String name) {
+        int dot = name.lastIndexOf('.');
+        if (dot < 0) return true;
+        String ext = name.substring(dot + 1).toLowerCase(Locale.ROOT);
+        return ext.equals("md") || ext.equals("markdown") || ext.equals("txt");
+    }
+
+    private void askPro() {
+        runOnUiThread(() -> {
+            String price = pro.price() != null ? pro.price() : "US$ 2.99";
+            new AlertDialog.Builder(this)
+                    .setTitle("MD Kraft Pro")
+                    .setMessage(t(
+                            "Abrir, editar y guardar HTML, CSS, JavaScript, JSON, Python y otros formatos —y previsualizar páginas HTML— es parte de MD Kraft Pro.\n\nPago único de " + price + ", sin suscripción.\n\nMarkdown (.md) y texto (.txt) son gratis para siempre.",
+                            "Opening, editing and saving HTML, CSS, JavaScript, JSON, Python and other formats —and previewing HTML pages— is part of MD Kraft Pro.\n\nOne-time payment of " + price + ", no subscription.\n\nMarkdown (.md) and text (.txt) are free forever."))
+                    .setPositiveButton(t("Desbloquear", "Unlock"), (d, w) -> pro.buy())
+                    .setNegativeButton(t("Ahora no", "Not now"), null)
+                    .show();
+        });
     }
 
     // ---- Archivos recientes (pantalla de inicio) ----
@@ -303,11 +333,19 @@ public class MainActivity extends Activity {
         for (String[] f : FORMATS) if (f[1].equals(ext)) list.add(f);
         for (String[] f : FORMATS) if (!f[1].equals(ext)) list.add(f);
         String[] labels = new String[list.size()];
-        for (int i = 0; i < labels.length; i++) labels[i] = list.get(i)[0] + "  (." + list.get(i)[1] + ")";
+        for (int i = 0; i < labels.length; i++) {
+            String[] f = list.get(i);
+            labels[i] = f[0] + "  (." + f[1] + ")" + (isFree("x." + f[1]) || pro.isPro() ? "" : "  🔒 Pro");
+        }
         new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setItems(labels, (d, which) -> {
                     String[] f = list.get(which);
+                    if (!isFree("x." + f[1]) && !pro.isPro()) {
+                        askPro();
+                        try { resolve(id, new JSONObject().put("cancelled", true)); } catch (Exception ignored) { }
+                        return;
+                    }
                     pendingCallId = id;
                     pendingSaveContent = content;
                     startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT)
@@ -436,18 +474,23 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void documentOpened() {
-            runOnUiThread(monetization::onDocumentOpened);
+        public void buyPro() {
+            runOnUiThread(pro::buy);
         }
 
         @JavascriptInterface
-        public void privacyOptions() {
-            runOnUiThread(monetization::showPrivacyOptions);
+        public void toggleProTest() {
+            runOnUiThread(pro::toggleTest);
         }
 
+        /** Vista previa de HTML en una ventana aparte, sin este puente (solo Pro). */
         @JavascriptInterface
-        public void buyRemoveAds() {
-            runOnUiThread(monetization::buy);
+        public void previewHtml(String html) {
+            runOnUiThread(() -> {
+                if (!pro.isPro()) { askPro(); return; }
+                PreviewActivity.pendingHtml = html;
+                startActivity(new Intent(MainActivity.this, PreviewActivity.class));
+            });
         }
 
         @JavascriptInterface

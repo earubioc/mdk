@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Los archivos se abren y guardan con el selector del sistema (SAF); la UI se carga
-         desde assets locales. Internet: anuncios (AdMob), compra (Play) y fuentes web. -->
+         desde assets locales. Internet: compra (Play), fuentes web y la vista previa de HTML. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -11,9 +11,10 @@
         android:label="MD Kraft"
         android:theme="@style/AppTheme">
 
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="${admobAppId}" />
+        <activity
+            android:name=".PreviewActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|uiMode" />
 
         <activity
             android:name=".MainActivity"

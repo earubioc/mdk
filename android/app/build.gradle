@@ -16,15 +16,11 @@ android {
 
     defaultConfig {
         applicationId 'com.vdcprocesslab.mdkraft'
-        // AdMob: por defecto IDs de PRUEBA de Google. En producción exportar
-        // MDK_ADMOB_APP_ID, MDK_ADMOB_BANNER_ID y MDK_ADMOB_INTERSTITIAL_ID (los de tu cuenta de AdMob).
-        manifestPlaceholders = [admobAppId: System.getenv('MDK_ADMOB_APP_ID') ?: 'ca-app-pub-3940256099942544~3347511713']
-        buildConfigField 'String', 'ADMOB_BANNER_ID',
-            '"' + (System.getenv('MDK_ADMOB_BANNER_ID') ?: 'ca-app-pub-3940256099942544/6300978111') + '"'
-        buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID',
-            '"' + (System.getenv('MDK_ADMOB_INTERSTITIAL_ID') ?: 'ca-app-pub-3940256099942544/1033173712') + '"'
-        // Producto in-app (no consumible) creado en Play Console: «Quitar anuncios», 1.99 USD.
-        buildConfigField 'String', 'REMOVE_ADS_PRODUCT_ID', '"remove_ads"'
+        // Compra única «MD Kraft Pro» (no consumible) creada en Play Console, US$ 2.99.
+        buildConfigField 'String', 'PRO_PRODUCT_ID', '"pro"'
+        // Compilaciones de prueba (PRs): botón extra para simular Pro encendido/apagado.
+        // Tags y ejecuciones de producción exportan MDK_RELEASE_BUILD=true.
+        buildConfigField 'boolean', 'TEST_BUILD', System.getenv('MDK_RELEASE_BUILD') ? 'false' : 'true'
         minSdk 24
         targetSdk 36
         // Play exige un versionCode mayor en cada subida: CI lo pasa (número de ejecución).
@@ -68,9 +64,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.android.gms:play-services-ads:23.6.0'
     implementation 'com.android.billingclient:billing:7.1.1'
-    implementation 'com.google.android.ump:user-messaging-platform:3.1.0'
 }
 
 // La UI es la misma carpeta src/ de la app de escritorio, sin copias en el repo.

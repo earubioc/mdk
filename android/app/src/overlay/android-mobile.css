@@ -5,6 +5,9 @@ html { -webkit-text-size-adjust: 100%; }
 .tabbar-actions { display: contents; }               /* en pantallas anchas todo sigue en una fila */
 .tabbar, .app-toolbar { scrollbar-width: none; }
 
+[hidden] { display: none !important; }
+.zoom-fab { display: none; }
+
 @media (max-width: 700px) {
   .brand, .tool-sep { display: none; }
 
@@ -23,6 +26,8 @@ html { -webkit-text-size-adjust: 100%; }
   .tabbar-actions::-webkit-scrollbar { display: none; }
   .tabbar-actions > * { flex-shrink: 0; }
   [data-action="show-compare"] { display: none; }
+  .tabbar .zoom-group { display: none; }   /* el zoom pasa a un botón flotante sobre el documento */
+
 
   /* Barra de abajo (junto al teclado). Fila 1: escritura. Fila 2: vista y exportar */
   .app-toolbar { flex-wrap: wrap; overflow: visible; padding: 3px 4px; gap: 2px; border-bottom: none; border-top: 1px solid var(--rule); }
@@ -31,6 +36,7 @@ html { -webkit-text-size-adjust: 100%; }
   .app-toolbar::after { content: ''; order: 2; flex: 0 0 100%; height: 0; }
   .app-toolbar [data-action="view-editor"], .app-toolbar [data-action="view-preview"],
   .app-toolbar [data-action="view-split"], .app-toolbar [data-action="export-pdf"] { order: 3; flex: 1 1 auto; }
+  .app-toolbar .html-preview-btn { order: 3; flex: 1 1 auto; }
   .app-toolbar [data-action="toggle-sheet"], .app-toolbar [data-action="show-page"] { display: none; }
 
   /* «Ambos» apila editor arriba y vista previa abajo (no dos columnas de 150 px) */
@@ -51,6 +57,12 @@ html { -webkit-text-size-adjust: 100%; }
   .preview th, .preview td { width: auto !important; min-width: 110px; max-width: 280px; word-break: normal; overflow-wrap: break-word; vertical-align: top; }
   .preview th:first-child, .preview td:first-child { min-width: 36px; }
   .col-resizer { display: none; }
+
+  /* Zoom: dos botoncitos translúcidos, uno sobre otro, en la esquina inferior derecha */
+  .zoom-fab { display: flex; flex-direction: column; gap: 6px; position: absolute; right: 10px; bottom: 10px; z-index: 15; }
+  .zoom-fab button { width: 36px; height: 36px; min-width: 0; min-height: 0; padding: 0; border-radius: 50%; border: 1px solid var(--rule);
+                     background: var(--white); color: var(--dark); font: 700 12px var(--font-condensed); opacity: .5; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .zoom-fab button:active { opacity: 1; }
 
   /* Índice del documento como panel que se superpone */
   .sidebar { position: absolute; z-index: 20; top: 0; bottom: 0; left: 0; width: 78vw; max-width: 320px; box-shadow: 4px 0 16px rgba(0,0,0,.3); }

@@ -10,16 +10,15 @@ la app muestre lo mismo.
 ## Sin publicar
 
 - Nuevo: MD Kraft Markdown Editor, la edición Android (`android/`; id `com.vdcprocesslab.mdkraft`).
-  Banner de AdMob, anuncio a pantalla completa cada 5 documentos (con consentimiento UMP)
-  y compra única «Quitar anuncios» (US$ 1,99, Play Billing). El workflow genera también el
-  `.aab` que exige Google Play; targetSdk 36. Guía: `manual_android_para_dummies.md`.
-- Android: pantalla de inicio con archivos recientes; «Guardar como» con elección de formato
-  (md, txt, html, css, js, json, py…); barras en dos filas (pestañas e índice arriba, acciones
-  debajo; escritura y vista abajo). Las compilaciones de prueba usan anuncios de prueba.
-- Android: diseño para teléfono (barra de formato abajo, «Ambos» apilado, tablas con
-  desplazamiento horizontal, índice como panel, texto sin justificar). Misma interfaz de escritorio en un WebView, con
-  selector de archivos del sistema, botones Guardar / Guardar como y exportación a PDF por
-  el diálogo de impresión de Android. APK compilado por GitHub Actions (`android.yml`).
+  Misma interfaz de escritorio en un WebView, con diseño para teléfono (pestañas e índice
+  arriba, acciones en una segunda fila, herramientas de escritura y de vista abajo, zoom
+  flotante), pantalla de inicio con archivos recientes, selector de archivos del sistema,
+  Guardar / Guardar como y exportación a PDF por el diálogo de impresión de Android.
+- Sin anuncios. Markdown y texto gratis; **MD Kraft Pro** (compra única US$ 2,99, Play
+  Billing) desbloquea abrir y guardar HTML, CSS, JS, JSON, Python y demás formatos, y la
+  vista previa real de HTML (ventana aislada del editor).
+- El workflow genera el `.apk` y el `.aab` que exige Google Play; targetSdk 36.
+  Guía: `manual_android_para_dummies.md`.
 
 ## 3.0.0
 

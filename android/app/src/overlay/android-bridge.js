@@ -15,10 +15,10 @@
   let dirty = false;
   let langCb = null, menuCb = null, openCb = null;
   let queuedOpen = null;
-  window.__mdkAds = () => {};
+  window.__mdkPro = () => {};
 
   window.mdk = {
-    openFile: () => call((id) => native.openFile(id)).then((res) => { if (!res.cancelled) native.documentOpened(); return res; }),
+    openFile: () => call((id) => native.openFile(id)),
     openPath: () => Promise.resolve({ cancelled: true }),
     saveFile: (content, filePath, saveAs) =>
       call((id) => native.saveFile(id, content, filePath || '', !!saveAs, S()['dialog.defaultFileName'], S()['dialog.saveAsTitle'])),
@@ -49,7 +49,7 @@
 
   // Archivo abierto desde el gestor de archivos (intent VIEW).
   window.__mdkOpenFile = (payload) => {
-    native.documentOpened();
+    if (!payload || payload.cancelled) return;   // p. ej. formato Pro sin desbloquear
     hideHome();
     if (openCb) openCb(payload); else queuedOpen = payload;
   };
@@ -83,35 +83,58 @@
   const saveBtn = mk('save', '💾', 'Save');
   const saveAsBtn = mk('save-as', '⇩…', 'Save as');
   const homeBtn = mk('', '🕘', '');
-  const adsBtn = mk('', '🚫', '');
-  const privBtn = mk('', '🔒', '');
-  adsBtn.hidden = true;
-  privBtn.hidden = true;
-  adsBtn.addEventListener('click', () => native.buyRemoveAds());
-  privBtn.addEventListener('click', () => native.privacyOptions());
+  const proBtn = mk('', '🔓', '');
+  const testBtn = mk('', '🧪', '');   // solo en compilaciones de prueba: simula Pro encendido/apagado
+  proBtn.hidden = true;
+  testBtn.hidden = true;
+  proBtn.addEventListener('click', () => native.buyPro());
+  testBtn.addEventListener('click', () => native.toggleProTest());
   homeBtn.addEventListener('click', () => showHome(true));
 
   if (tabbar) {
     const actions = document.createElement('div');
     actions.className = 'tabbar-actions';
     const pick = (sel) => tabbar.querySelector(sel);
-    [pick('[data-action="open"]'), saveBtn, saveAsBtn, homeBtn, pick('[data-action="show-skins"]'), adsBtn,
+    [pick('[data-action="open"]'), saveBtn, saveAsBtn, homeBtn, pick('[data-action="show-skins"]'), proBtn,
       pick('[data-action="toggle-search"]'), pick('#darkToggle'), pick('.zoom-group'),
-      pick('#languageToggle'), pick('[data-action="show-info"]'), privBtn]
+      pick('#languageToggle'), pick('[data-action="show-info"]'), testBtn]
       .forEach((el) => { if (el) actions.appendChild(el); });
     tabbar.appendChild(actions);
   }
 
-  // Un documento nuevo (pestaña +) también cuenta para el intersticial.
-  document.querySelectorAll('[data-action="new-tab"]').forEach((b) => b.addEventListener('click', () => native.documentOpened()));
-
-  window.__mdkAds = (removed, price, privacy) => {
-    privBtn.hidden = !privacy;
-    privBtn.title = L('Privacidad de anuncios', 'Ad privacy options');
-    adsBtn.hidden = removed;
-    adsBtn.title = L('Quitar anuncios', 'Remove ads') + (price ? ' · ' + price : '');
-    adsBtn.textContent = '🚫' + (price ? ' ' + price : '');
+  // MD Kraft Pro: botón de desbloqueo (visible mientras no sea Pro) y, en pruebas, el interruptor.
+  window.__mdkPro = (pro, price, testBuild, testOn) => {
+    proBtn.hidden = pro;
+    proBtn.title = 'MD Kraft Pro' + (price ? ' · ' + price : '');
+    proBtn.textContent = '🔓 Pro' + (price ? ' ' + price : '');
+    testBtn.hidden = !testBuild;
+    testBtn.textContent = '🧪 Pro ' + (testOn ? 'ON' : 'OFF');
   };
+
+  // Vista previa real de HTML (Pro): botón visible solo cuando la pestaña activa es .html/.htm.
+  const toolbar = document.querySelector('.app-toolbar');
+  const htmlBtn = document.createElement('button');
+  htmlBtn.className = 'tool-btn tool-btn--accent html-preview-btn';
+  htmlBtn.textContent = '▶ HTML';
+  htmlBtn.hidden = true;
+  htmlBtn.addEventListener('click', () => native.previewHtml(document.getElementById('editor').value));
+  if (toolbar) toolbar.appendChild(htmlBtn);
+  const tabsEl = document.getElementById('tabsList');
+  const syncHtmlBtn = () => {
+    const n = document.querySelector('.tab.is-active .tab-name');
+    htmlBtn.hidden = !(n && /\.html?$/i.test(n.textContent.trim()));
+    htmlBtn.title = L('Previsualizar la página HTML', 'Preview the HTML page');
+  };
+  if (tabsEl) new MutationObserver(syncHtmlBtn).observe(tabsEl, { childList: true, subtree: true, characterData: true });
+
+  // Zoom flotante (teléfono): dos botoncitos translúcidos en la esquina inferior derecha del documento.
+  const workspace = document.querySelector('.workspace');
+  if (workspace) {
+    const fab = document.createElement('div');
+    fab.className = 'zoom-fab';
+    fab.innerHTML = '<button data-action="zoom-in" aria-label="+">A+</button><button data-action="zoom-out" aria-label="-">A−</button>';
+    workspace.appendChild(fab);
+  }
 
   // ---------- Pantalla de inicio: archivos recientes ----------
   const home = document.createElement('div');
@@ -168,7 +191,7 @@
 
     home.querySelector('#homeNew').addEventListener('click', () => {
       hideHome();
-      if (homeFromButton && menuCb) { menuCb('new-tab'); native.documentOpened(); }
+      if (homeFromButton && menuCb) menuCb('new-tab');
     });
     home.querySelector('#homeOpen').addEventListener('click', () => { hideHome(); if (menuCb) menuCb('open'); });
     home.querySelectorAll('.home-card').forEach((card) => {

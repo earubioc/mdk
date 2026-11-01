@@ -25,10 +25,10 @@ licencia MIT, ver ../LICENSE. Esta licencia se aplica SOLO a los archivos de and
       app's icon and branding, for any other product.
       Usar los nombres "MD Kraft", "MDK" (para la app de Android) o "VDC Process Lab", ni el
       ícono y la marca de la app, en otro producto.
-   c) Using the advertising or in-app purchase configuration of this project (AdMob
-      identifiers, Play Billing product ids, signing keys) for any other app.
-      Usar la configuración de publicidad o compras de este proyecto (identificadores de
-      AdMob, ids de productos de Play Billing, llaves de firma) en otra app.
+   c) Using the in-app purchase configuration of this project (Play Billing product ids,
+      signing keys) for any other app.
+      Usar la configuración de compras de este proyecto (ids de productos de Play Billing,
+      llaves de firma) en otra app.
    d) Removing this notice.
       Eliminar este aviso.
 
