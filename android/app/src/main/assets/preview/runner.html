@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; }
+  #err { white-space: pre-wrap; font: 13px/1.5 monospace; color: #b00020; padding: 16px 16px 16px 16px; }
+  #err b { display: block; margin-bottom: 6px; font: 600 15px system-ui; }
+</style>
+<!-- Tailwind por CDN: solo si hay internet (los componentes generados por IA suelen usarlo). -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="/lib/react.min.js"></script>
+<script src="/lib/react-dom.min.js"></script>
+<script src="/lib/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<div id="err"></div>
+<script>
+(function () {
+  var SRC = /*__SRC__*/null;
+  var NAME = /*__NAME__*/"App.tsx";
+  var errEl = document.getElementById('err');
+  function fail(e) {
+    errEl.innerHTML = '<b>No se pudo mostrar el componente</b>';
+    errEl.appendChild(document.createTextNode(String((e && e.message) || e)));
+  }
+  window.addEventListener('error', function (ev) { fail(ev.error || ev.message); });
+  try {
+    // Fragmentos de IA sin "export default": se exporta el último componente declarado (nombre en mayúscula).
+    if (!/\bexport\b/.test(SRC)) {
+      var decl = SRC.match(/^(?:const|let|var|function|class)\s+([A-Z]\w*)/gm);
+      if (decl) SRC += '\nexport default ' + decl[decl.length - 1].split(/\s+/)[1].replace(/\W.*/, '') + ';';
+    }
+    var out = Babel.transform(SRC, {
+      filename: NAME,
+      sourceType: 'module',
+      presets: ['react', 'typescript'],
+      plugins: ['transform-modules-commonjs']
+    }).code;
+
+    // Solo React viene incluido. Los iconos de lucide-react se sustituyen por huecos vacíos.
+    var icons = new Proxy({}, { get: function (_, k) {
+      if (k === '__esModule') return false;
+      return function (p) { var s = (p && p.size) || 16; return React.createElement('span', { style: { display: 'inline-block', width: s, height: s } }); };
+    } });
+    var mods = { 'react': React, 'react-dom': ReactDOM, 'react-dom/client': ReactDOM, 'lucide-react': icons };
+    function req(n) {
+      if (Object.prototype.hasOwnProperty.call(mods, n)) return mods[n];
+      throw new Error('La vista previa solo incluye React. Este archivo importa "' + n + '", que no está disponible sin conexión.');
+    }
+    var module = { exports: {} };
+    new Function('require', 'module', 'exports', 'React', out)(req, module, module.exports, React);
+
+    var ex = module.exports, C = ex.default || ex.App;
+    if (typeof C !== 'function') {
+      C = Object.keys(ex).map(function (k) { return ex[k]; }).filter(function (v) { return typeof v === 'function'; })[0];
+    }
+    if (typeof C !== 'function') throw new Error('No encontré un componente exportado. Agrega "export default MiComponente;" al final del archivo.');
+
+    class Boundary extends React.Component {
+      constructor(p) { super(p); this.state = { e: null }; }
+      static getDerivedStateFromError(e) { return { e: e }; }
+      render() { if (this.state.e) { fail(this.state.e); return null; } return this.props.children; }
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Boundary, null, React.createElement(C)));
+  } catch (e) { fail(e); }
+})();
+</script>
+</body>
+</html>

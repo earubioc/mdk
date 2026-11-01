@@ -52,7 +52,7 @@ This opens the app in an Electron window over the code in `src/`.
 
 ## Android (MD Kraft)
 
-The Android edition is published as **MD Kraft Markdown Editor** (`com.vdcprocesslab.mdkraft`; the name "MDK" is already taken on Google Play). **No ads, ever.** Markdown (`.md`) and text (`.txt`) are free forever. **MD Kraft Pro** (one-time in-app purchase, US$ 2.99, product id `pro`) unlocks opening/saving other formats (HTML, CSS, JS, JSON, Python, and any text or code file) and a **real HTML preview** to check what an AI generates. The Windows app stays free and ad-free. Step-by-step publishing guide: [`manual_android_para_dummies.md`](./manual_android_para_dummies.md) (Spanish).
+The Android edition is published as **MD Kraft Markdown Editor** (`com.vdcprocesslab.mdkraft`; the name "MDK" is already taken on Google Play). **No ads, ever.** Markdown (`.md`) and text (`.txt`) are free forever. **MD Kraft Pro** (one-time in-app purchase, US$ 2.99, product id `pro`) unlocks opening/saving other formats (HTML, CSS, JS, JSON, Python, and any text or code file) and a **real preview of HTML, SVG and React components (`.tsx`)** to check what an AI generates. The Windows app stays free and ad-free. Step-by-step publishing guide: [`manual_android_para_dummies.md`](./manual_android_para_dummies.md) (Spanish).
 
 `android/` wraps the same UI from `src/` in a native WebView (no Capacitor; the only dependency is Google Play Billing; version comes from `package.json`). Open/save use the system file picker; **Export PDF** and **Print** open Android's print dialog (choose "Save as PDF"). It adds a home screen with recent files and a phone layout.
 

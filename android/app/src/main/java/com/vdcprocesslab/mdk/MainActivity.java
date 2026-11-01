@@ -59,7 +59,8 @@ public class MainActivity extends Activity {
             {"YAML", "yaml", "application/octet-stream"}, {"CSV", "csv", "text/csv"},
             {"Python", "py", "application/octet-stream"}, {"Java", "java", "application/octet-stream"},
             {"C / C++", "c", "application/octet-stream"}, {"SQL", "sql", "application/octet-stream"},
-            {"Shell", "sh", "application/octet-stream"}, {"LaTeX", "tex", "application/octet-stream"},
+            {"Shell", "sh", "application/octet-stream"}, {"SVG", "svg", "application/octet-stream"}, {"React (TSX)", "tsx", "application/octet-stream"},
+            {"React (JSX)", "jsx", "application/octet-stream"}, {"LaTeX", "tex", "application/octet-stream"},
             {"Log", "log", "text/plain"}
     };
 
@@ -483,12 +484,14 @@ public class MainActivity extends Activity {
             runOnUiThread(pro::toggleTest);
         }
 
-        /** Vista previa de HTML en una ventana aparte, sin este puente (solo Pro). */
+        /** Vista previa (html | svg | react) en una ventana aparte, sin este puente (solo Pro). */
         @JavascriptInterface
-        public void previewHtml(String html) {
+        public void preview(String kind, String name, String code) {
             runOnUiThread(() -> {
                 if (!pro.isPro()) { askPro(); return; }
-                PreviewActivity.pendingHtml = html;
+                PreviewActivity.pendingKind = kind;
+                PreviewActivity.pendingName = name;
+                PreviewActivity.pendingCode = code;
                 startActivity(new Intent(MainActivity.this, PreviewActivity.class));
             });
         }

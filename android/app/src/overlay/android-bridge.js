@@ -115,15 +115,21 @@
   const toolbar = document.querySelector('.app-toolbar');
   const htmlBtn = document.createElement('button');
   htmlBtn.className = 'tool-btn tool-btn--accent html-preview-btn';
-  htmlBtn.textContent = '▶ HTML';
+  htmlBtn.textContent = '▶ Vista previa';
   htmlBtn.hidden = true;
-  htmlBtn.addEventListener('click', () => native.previewHtml(document.getElementById('editor').value));
+  let previewKind = null;
+  htmlBtn.addEventListener('click', () => {
+    const name = (document.querySelector('.tab.is-active .tab-name') || {}).textContent || '';
+    native.preview(previewKind, name.replace(/^●\s*/, '').trim(), document.getElementById('editor').value);
+  });
   if (toolbar) toolbar.appendChild(htmlBtn);
   const tabsEl = document.getElementById('tabsList');
   const syncHtmlBtn = () => {
     const n = document.querySelector('.tab.is-active .tab-name');
-    htmlBtn.hidden = !(n && /\.html?$/i.test(n.textContent.trim()));
-    htmlBtn.title = L('Previsualizar la página HTML', 'Preview the HTML page');
+    const ext = n ? (n.textContent.trim().match(/\.([a-z0-9]+)$/i) || [])[1] : '';
+    previewKind = { html: 'html', htm: 'html', svg: 'svg', tsx: 'react', jsx: 'react' }[(ext || '').toLowerCase()] || null;
+    htmlBtn.hidden = !previewKind;
+    htmlBtn.title = L('Previsualizar (HTML, SVG, React)', 'Preview (HTML, SVG, React)');
   };
   if (tabsEl) new MutationObserver(syncHtmlBtn).observe(tabsEl, { childList: true, subtree: true, characterData: true });
 

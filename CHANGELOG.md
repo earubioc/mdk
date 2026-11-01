@@ -16,7 +16,8 @@ la app muestre lo mismo.
   Guardar / Guardar como y exportación a PDF por el diálogo de impresión de Android.
 - Sin anuncios. Markdown y texto gratis; **MD Kraft Pro** (compra única US$ 2,99, Play
   Billing) desbloquea abrir y guardar HTML, CSS, JS, JSON, Python y demás formatos, y la
-  vista previa real de HTML (ventana aislada del editor).
+  vista previa real de HTML, SVG y componentes React `.tsx`/`.jsx` (ventana aislada del
+  editor; React y Babel van incluidos, funciona sin internet).
 - El workflow genera el `.apk` y el `.aab` que exige Google Play; targetSdk 36.
   Guía: `manual_android_para_dummies.md`.
 

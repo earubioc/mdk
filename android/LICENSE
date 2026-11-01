@@ -36,6 +36,9 @@ licencia MIT, ver ../LICENSE. Esta licencia se aplica SOLO a los archivos de and
    - gradlew, gradlew.bat and gradle/wrapper/* come from the Gradle project and remain
      under the Apache License 2.0.
      provienen del proyecto Gradle y siguen bajo la licencia Apache 2.0.
+   - assets/preview/lib/* (React, React DOM, @babel/standalone) are bundled third-party
+     libraries under the MIT License; see assets/preview/LICENSES.txt.
+     son bibliotecas de terceros incluidas, bajo licencia MIT; ver assets/preview/LICENSES.txt.
    - The editor interface in src/ (bundled into the app at build time) remains under the
      MIT License; this license does not restrict what the MIT License allows for src/.
      La interfaz del editor en src/ (incluida en la app al compilar) sigue bajo la

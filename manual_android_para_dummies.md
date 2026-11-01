@@ -43,10 +43,13 @@ y unos días de revisión de Google.
 **MD Kraft Pro, compra única de US$ 2,99 (sin suscripción):**
 - Abrir, editar y guardar **HTML, CSS, JavaScript, TypeScript, JSON, XML, YAML, CSV, Python,
   Java, C/C++, SQL, Shell, LaTeX, logs** y cualquier otro archivo de texto o código.
-- **Vista previa real de HTML** (botón ▶ HTML): muestra la página como se vería en un
-  navegador, con su JavaScript. Pensada para revisar al instante lo que genera una IA.
-  Corre en una ventana aparte, **aislada del editor** (el código que previsualizas no
-  puede tocar tus archivos ni la app).
+- **Vista previa real** (botón ▶ Vista previa) de **HTML, SVG y componentes de React
+  (`.tsx` / `.jsx`)**: muestra la página o el componente como se vería en un navegador, con
+  su JavaScript. Pensada para revisar al instante lo que genera una IA. Corre en una
+  ventana aparte, **aislada del editor** (el código que previsualizas no puede tocar tus
+  archivos ni la app). Para React la app incluye React y un compilador de JSX/TypeScript,
+  así que funciona sin internet; si el componente importa otras librerías (por ejemplo
+  `recharts`), la vista previa lo avisa. Si hay internet, también carga Tailwind CSS.
 - A futuro: colores de sintaxis, números de línea y buscar y reemplazar.
 
 Cómo se aplica: si alguien intenta abrir o guardar un formato Pro sin haberlo desbloqueado,
@@ -201,8 +204,9 @@ distinto en cada subida.
    - [ ] El **zoom** son dos botoncitos translúcidos (A+ / A−) abajo a la derecha del documento.
    - [ ] Con **🧪 Pro OFF**: abrir un `.html` o `.py` muestra el aviso de Pro; «Guardar como»
          marca los formatos Pro con 🔒. Los botones **🔓 Pro** y **🧪** están arriba.
-   - [ ] Con **🧪 Pro ON**: se abren y guardan HTML y código; en un `.html` aparece el
-         botón **▶ HTML** y muestra la página en una ventana aparte (✕ para volver).
+   - [ ] Con **🧪 Pro ON**: se abren y guardan HTML y código; en un `.html`, `.svg`, `.tsx`
+         o `.jsx` aparece el botón **▶ Vista previa** y muestra el resultado en una ventana
+         aparte (✕ para volver).
 4. Para probar el **cobro real** necesitas la versión instalada **desde Google Play**
    (parte 7.5), no el APK: el botón 🔓 Pro solo puede comprar si Play lo instaló.
 
@@ -281,7 +285,7 @@ MD Kraft es un editor de Markdown simple y sin fricción.
 
 MD KRAFT PRO (compra única, sin suscripción)
 • Abre, edita y guarda HTML, CSS, JavaScript, JSON, Python y otros formatos de texto y código
-• Vista previa real de páginas HTML: revisa al instante lo que genera una IA
+• Vista previa real de páginas HTML, SVG y componentes React (.tsx): revisa al instante lo que genera una IA
 
 Tus documentos se quedan en tu dispositivo: MD Kraft no los envía a ningún servidor.
 ```
@@ -302,7 +306,7 @@ MD Kraft is a simple, no-friction Markdown editor.
 
 MD KRAFT PRO (one-time purchase, no subscription)
 • Open, edit and save HTML, CSS, JavaScript, JSON, Python and other text and code formats
-• Real HTML page preview: instantly check what an AI generates
+• Real preview of HTML pages, SVG and React components (.tsx): instantly check what an AI generates
 
 Your documents stay on your device: MD Kraft never sends them to any server.
 ```
@@ -328,7 +332,7 @@ gráfico de funciones.
 2. **ID del producto:** `pro` (exactamente así, minúsculas; **no se puede cambiar** luego,
    y debe coincidir con el código).
 3. Nombre: `MD Kraft Pro`. Descripción: `Abre, edita y guarda HTML, CSS, JavaScript, JSON,
-   Python y otros formatos, y previsualiza páginas HTML. Pago único.`
+   Python y otros formatos, y previsualiza HTML, SVG y componentes React. Pago único.`
 4. **Precio:** US$ **2,99**. Google convierte el precio a las otras monedas (puedes
    editarlos por país).
 5. **Activar** el producto (estado *Activo*). Es un producto **único, no consumible**: se
@@ -440,7 +444,7 @@ y texto; Pro opcional para código y vista previa de HTML*.
 
 - [ ] GitHub: los 4 secretos de firma creados.
 - [ ] Llave `.jks` y contraseñas **respaldadas** fuera del computador.
-- [ ] Probado en teléfono: abrir, guardar, PDF, zoom, aviso de Pro, ▶ HTML.
+- [ ] Probado en teléfono: abrir, guardar, PDF, zoom, aviso de Pro, ▶ Vista previa.
 - [ ] Play Console: política de privacidad, anuncios = No, clasificación, público 18+,
       seguridad de datos = no recopila, ficha con ícono, gráfico y capturas.
 - [ ] Producto `pro` activo a US$ 2,99.
