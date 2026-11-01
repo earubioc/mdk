@@ -10,7 +10,8 @@ name: Android
 # sobre uno anterior). Para APKs actualizables, crea una keystore una sola vez y
 # guarda estos secrets: MDK_KEYSTORE_BASE64 (base64 del .jks), MDK_KEYSTORE_PASSWORD,
 # MDK_KEY_ALIAS, MDK_KEY_PASSWORD.
-# Anuncios: sin MDK_ADMOB_APP_ID / MDK_ADMOB_BANNER_ID / MDK_ADMOB_INTERSTITIAL_ID salen anuncios de PRUEBA de Google.
+# Anuncios: solo los tags y las ejecuciones manuales con real_ads=true usan los secrets
+# MDK_ADMOB_*; el resto sale con anuncios de PRUEBA de Google (y la franja de diagnóstico).
 
 on:
   push:
@@ -20,6 +21,11 @@ on:
   pull_request:
     paths: ['android/**', 'src/**', 'package.json', '.github/workflows/android.yml']
   workflow_dispatch:
+    inputs:
+      real_ads:
+        description: 'Usar los IDs REALES de AdMob (solo para producción; por defecto anuncios de prueba)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -32,9 +38,11 @@ jobs:
       MDK_KEYSTORE_PASSWORD: ${{ secrets.MDK_KEYSTORE_PASSWORD }}
       MDK_KEY_ALIAS: ${{ secrets.MDK_KEY_ALIAS }}
       MDK_KEY_PASSWORD: ${{ secrets.MDK_KEY_PASSWORD }}
-      MDK_ADMOB_APP_ID: ${{ secrets.MDK_ADMOB_APP_ID }}
-      MDK_ADMOB_BANNER_ID: ${{ secrets.MDK_ADMOB_BANNER_ID }}
-      MDK_ADMOB_INTERSTITIAL_ID: ${{ secrets.MDK_ADMOB_INTERSTITIAL_ID }}
+      # Los IDs reales de AdMob solo entran en los tags vX.Y.Z o al ejecutar a mano con
+      # real_ads = true. PRs y pushes normales compilan con anuncios de PRUEBA de Google.
+      MDK_ADMOB_APP_ID: ${{ (startsWith(github.ref, 'refs/tags/v') || inputs.real_ads) && secrets.MDK_ADMOB_APP_ID || '' }}
+      MDK_ADMOB_BANNER_ID: ${{ (startsWith(github.ref, 'refs/tags/v') || inputs.real_ads) && secrets.MDK_ADMOB_BANNER_ID || '' }}
+      MDK_ADMOB_INTERSTITIAL_ID: ${{ (startsWith(github.ref, 'refs/tags/v') || inputs.real_ads) && secrets.MDK_ADMOB_INTERSTITIAL_ID || '' }}
       MDK_VERSION_CODE: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4

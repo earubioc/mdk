@@ -13,6 +13,9 @@ la app muestre lo mismo.
   Banner de AdMob, anuncio a pantalla completa cada 5 documentos (con consentimiento UMP)
   y compra única «Quitar anuncios» (US$ 1,99, Play Billing). El workflow genera también el
   `.aab` que exige Google Play; targetSdk 36. Guía: `manual_android_para_dummies.md`.
+- Android: pantalla de inicio con archivos recientes; «Guardar como» con elección de formato
+  (md, txt, html, css, js, json, py…); barras en dos filas (pestañas e índice arriba, acciones
+  debajo; escritura y vista abajo). Las compilaciones de prueba usan anuncios de prueba.
 - Android: diseño para teléfono (barra de formato abajo, «Ambos» apilado, tablas con
   desplazamiento horizontal, índice como panel, texto sin justificar). Misma interfaz de escritorio en un WebView, con
   selector de archivos del sistema, botones Guardar / Guardar como y exportación a PDF por

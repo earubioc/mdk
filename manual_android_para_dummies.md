@@ -236,9 +236,11 @@ Eso copia el texto al portapapeles (se pega en el siguiente paso).
 | `MDK_ADMOB_BANNER_ID` | el ID del banner (parte 3.3) |
 | `MDK_ADMOB_INTERSTITIAL_ID` | el ID del intersticial (parte 3.3) |
 
-> **Truco de seguridad:** mientras no estés en producción (partes 6 a 8), **no crees** los
-> tres secretos `MDK_ADMOB_*`. Sin ellos, la app usa anuncios **de prueba** y nadie puede
-> dañar tu cuenta de AdMob por error. Los creas justo antes de la parte 9.
+> **Anuncios de prueba vs. reales (automático):** puedes crear los tres secretos
+> `MDK_ADMOB_*` desde ya. El workflow **solo los usa** cuando se sube una versión con etiqueta
+> `vX.Y.Z` o cuando ejecutas a mano **Run workflow marcando `real_ads`**. Cualquier otra
+> compilación (PRs, pruebas) sale con anuncios **de prueba** de Google y con la franja gris de
+> diagnóstico, así tu cuenta de AdMob no corre riesgo mientras pruebas.
 
 ---
 
@@ -248,7 +250,8 @@ La app se compila en la nube de GitHub: no instalas Android Studio.
 
 1. En GitHub, el cambio de Android debe estar en la rama `main` (mediante *Pull request →
    Merge*). Pídeme que lo prepare si aún no está.
-2. Ve a la pestaña **Actions → Android → Run workflow** (botón a la derecha) → **Run
+2. Ve a la pestaña **Actions → Android → Run workflow** (botón a la derecha; deja
+   **`real_ads` sin marcar** para una versión de pruebas) → **Run
    workflow**. También se ejecuta solo en cada cambio de Android.
 3. Espera unos 5–10 minutos hasta ver la marca verde ✅. Si sale ❌ roja, copia el
    mensaje de error y envíamelo.
@@ -269,7 +272,10 @@ distinto en cada subida.
    para esta instalación.
 3. Revisa esta lista:
    - [ ] Abre, escribe y la vista previa funciona.
-   - [ ] **Abrir** un archivo `.md` y **guardar** (botón 💾) y **guardar como**.
+   - [ ] Al abrir la app aparece la **pantalla de inicio con recientes**; tocar uno lo abre.
+   - [ ] **Abrir** un archivo `.md` y **guardar** (botón 💾) y **guardar como**; en
+         «Guardar como» eliges el formato (.md, .txt, .html, .py, .json…).
+   - [ ] Puedes abrir también `.txt`, `.html`, `.css`, `.js`, `.json`, código en general.
    - [ ] **Exportar PDF** abre el diálogo de impresión → "Guardar como PDF".
    - [ ] Abajo se ve una **franja gris con texto pequeño** (solo en versiones de prueba) y
          debajo un banner con la etiqueta **Test Ad**. La franja dice, por ejemplo:
@@ -470,8 +476,8 @@ verificadas normalmente no lo necesitan.)
 
 ## 9. Publicar en producción (con anuncios reales)
 
-1. **Ahora sí** crea los 3 secretos `MDK_ADMOB_*` en GitHub (parte 4.3).
-2. Vuelve a ejecutar **Actions → Android → Run workflow** (parte 5) y baja el nuevo
+1. Confirma que los 3 secretos `MDK_ADMOB_*` existen en GitHub (parte 4.3).
+2. Ejecuta **Actions → Android → Run workflow** **marcando `real_ads`** (parte 5) y baja el nuevo
    **`MDKraft.aab`** (trae los IDs reales y un `versionCode` mayor).
 3. **Producción → Crear versión** → sube ese `.aab` → notas de la versión → **Guardar →
    Revisar → Iniciar lanzamiento a producción**.

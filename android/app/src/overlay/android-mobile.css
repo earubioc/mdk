@@ -1,25 +1,37 @@
-/* Ajustes para pantallas táctiles estrechas (teléfono). No toca el diseño de escritorio. */
+/* Ajustes de MD Kraft para Android. No toca el diseño de escritorio. */
 html { -webkit-text-size-adjust: 100%; }
-.tabbar, .app-toolbar { overflow-x: auto; scrollbar-width: none; }
-.tabbar::-webkit-scrollbar, .app-toolbar::-webkit-scrollbar { display: none; }
-.tabbar > *, .app-toolbar > * { flex-shrink: 0; }
 .tool-spacer { display: none; }
 .icon-btn, .tool-btn { min-width: 40px; min-height: 40px; }
+.tabbar-actions { display: contents; }               /* en pantallas anchas todo sigue en una fila */
+.tabbar, .app-toolbar { scrollbar-width: none; }
 
 @media (max-width: 700px) {
-  .brand { display: none; }
+  .brand, .tool-sep { display: none; }
 
-  /* Orden vertical: pestañas · (búsqueda) · documento · barra de formato · estado.
-     La barra de formato queda abajo, al alcance del pulgar y pegada al teclado. */
-  .tabbar { order: 0; padding: 4px 6px; gap: 2px; }
+  /* Orden vertical: pestañas/acciones · (búsqueda) · documento · herramientas · estado */
+  .tabbar { order: 0; flex-wrap: wrap; overflow: visible; padding: 4px 6px 0; gap: 2px; }
   .searchbar { order: 1; }
   .workspace { order: 2; position: relative; flex-direction: column; }
-  .app-toolbar { order: 3; padding: 4px 6px; gap: 4px; border-bottom: none; border-top: 1px solid var(--rule); }
+  .app-toolbar { order: 3; }
   .status-bar { order: 4; padding: 3px 10px; }
   #statusPath { max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* Herramientas que no tienen sentido en una pantalla de teléfono */
-  [data-action="show-compare"], #sheetToggle { display: none; }
+  /* Fila 1 de arriba: índice · pestañas · nueva. Fila 2: abrir, guardar, personalizar… (se desliza) */
+  .tabbar > .tabs { flex: 1 1 0; min-width: 0; }
+  .tabbar-actions { order: 5; flex: 0 0 100%; display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none;
+                    border-top: 1px solid var(--rule); padding: 2px 0 3px; }
+  .tabbar-actions::-webkit-scrollbar { display: none; }
+  .tabbar-actions > * { flex-shrink: 0; }
+  [data-action="show-compare"] { display: none; }
+
+  /* Barra de abajo (junto al teclado). Fila 1: escritura. Fila 2: vista y exportar */
+  .app-toolbar { flex-wrap: wrap; overflow: visible; padding: 3px 4px; gap: 2px; border-bottom: none; border-top: 1px solid var(--rule); }
+  .app-toolbar .tool-group { display: contents; }
+  .app-toolbar .tool-btn { order: 1; flex: 1 1 0; min-width: 0; padding: 0 2px; height: 40px; }
+  .app-toolbar::after { content: ''; order: 2; flex: 0 0 100%; height: 0; }
+  .app-toolbar [data-action="view-editor"], .app-toolbar [data-action="view-preview"],
+  .app-toolbar [data-action="view-split"], .app-toolbar [data-action="export-pdf"] { order: 3; flex: 1 1 auto; }
+  .app-toolbar [data-action="toggle-sheet"], .app-toolbar [data-action="show-page"] { display: none; }
 
   /* «Ambos» apila editor arriba y vista previa abajo (no dos columnas de 150 px) */
   .pane--editor, .pane--preview { flex: 1 1 0 !important; min-width: 0; min-height: 0; width: 100%; border-right: none; }
@@ -45,3 +57,37 @@ html { -webkit-text-size-adjust: 100%; }
 
   .modal-card, .modal-card--wide, .modal-card--info { width: calc(100vw - 24px); max-width: 460px; max-height: 92vh; overflow-y: auto; }
 }
+
+/* ---------- Pantalla de inicio: archivos recientes ---------- */
+#homeScreen { position: fixed; inset: 0; z-index: 50; background: var(--bg); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#homeScreen[hidden] { display: none; }
+.home-inner { max-width: 640px; margin: 0 auto; padding: 28px 18px 40px; }
+.home-head { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.home-mark { width: 52px; height: 52px; border-radius: 14px; background: var(--red); color: #fff; font: 700 34px/52px var(--font-body); text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+.home-title { font-family: var(--font-display); font-size: 34px; line-height: 1; letter-spacing: .02em; color: var(--dark); }
+.home-sub { font-family: var(--font-condensed); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--light); margin-top: 4px; }
+.home-actions { display: flex; gap: 10px; margin-bottom: 26px; }
+.home-btn { flex: 1; height: 52px; border-radius: 14px; border: 1px solid var(--rule); background: var(--white); color: var(--dark);
+            font: 600 15px var(--font-body); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.home-btn--main { background: var(--red); border-color: var(--red); color: #fff; }
+.home-btn:active { transform: scale(.98); }
+.home-section { font-family: var(--font-condensed); font-weight: 700; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--light); margin: 0 4px 10px; }
+.home-list { display: flex; flex-direction: column; gap: 10px; }
+.home-card { display: flex; align-items: center; gap: 14px; padding: 12px 8px 12px 12px; border-radius: 16px; background: var(--white);
+             border: 1px solid var(--rule); box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+.home-card:active { background: var(--bg); }
+.home-badge { flex: 0 0 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+              font: 700 12px var(--font-condensed); letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #777; }
+.home-badge--md { background: var(--red); }
+.home-badge--txt { background: #6b7280; }
+.home-badge--web { background: #2f7dd1; }
+.home-badge--code { background: #2e9e6b; }
+.home-badge--data { background: #c98a1b; }
+.home-body { flex: 1; min-width: 0; }
+.home-name { font: 600 15px var(--font-body); color: var(--dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-snip { font: 300 13px/1.35 var(--font-body); color: var(--mid); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.home-time { font: 400 11px var(--font-condensed); letter-spacing: .06em; text-transform: uppercase; color: var(--light); margin-top: 4px; }
+.home-del { flex: 0 0 40px; height: 40px; border: none; background: transparent; color: var(--light); font-size: 22px; border-radius: 50%; }
+.home-del:active { background: var(--rule); }
+.home-empty { text-align: center; color: var(--mid); font: 300 15px/1.6 var(--font-body); padding: 40px 20px; border: 2px dashed var(--rule); border-radius: 18px; }
+.home-empty-ico { font-size: 40px; margin-bottom: 10px; }

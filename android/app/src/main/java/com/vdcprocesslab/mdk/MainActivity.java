@@ -23,6 +23,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -48,6 +49,22 @@ public class MainActivity extends Activity {
     private int pendingCallId = -1;         // llamada JS esperando el resultado del selector
     private String pendingSaveContent = null;
     private String pendingSaveName = null;
+    private static final int MAX_RECENTS = 20;
+    // Formatos de «Guardar como»: etiqueta, extensión, tipo MIME. Con octet-stream Android no
+    // le agrega otra extensión al nombre; solo los tipos que conoce se declaran con su MIME.
+    private static final String[][] FORMATS = {
+            {"Markdown", "md", "application/octet-stream"}, {"Texto", "txt", "text/plain"},
+            {"HTML", "html", "text/html"}, {"CSS", "css", "application/octet-stream"},
+            {"JavaScript", "js", "application/octet-stream"}, {"TypeScript", "ts", "application/octet-stream"},
+            {"JSON", "json", "application/json"}, {"XML", "xml", "text/xml"},
+            {"YAML", "yaml", "application/octet-stream"}, {"CSV", "csv", "text/csv"},
+            {"Python", "py", "application/octet-stream"}, {"Java", "java", "application/octet-stream"},
+            {"C / C++", "c", "application/octet-stream"}, {"SQL", "sql", "application/octet-stream"},
+            {"Shell", "sh", "application/octet-stream"}, {"LaTeX", "tex", "application/octet-stream"},
+            {"Log", "log", "text/plain"}
+    };
+
+    private SharedPreferences prefs;
     private Monetization monetization;
     private String adsState = "false,null,false"; // último estado enviado a JS (se reenvía al cargar la página)
     private WebView printView;              // referencia viva mientras el sistema imprime
@@ -58,6 +75,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        prefs = getSharedPreferences("mdk", Context.MODE_PRIVATE);
         web = new WebView(this);
         LinearLayout adBar = new LinearLayout(this);
         adBar.setOrientation(LinearLayout.VERTICAL);
@@ -156,7 +174,11 @@ public class MainActivity extends Activity {
         for (int n = 2; files.containsKey(key) && !files.get(key).equals(uri); n++) key = n + "/" + name;
         files.put(key, uri);
         JSONObject o = new JSONObject().put("cancelled", false).put("filePath", key);
-        if (withContent) o.put("content", readText(uri));
+        if (withContent) {
+            String content = readText(uri);
+            o.put("content", content);
+            touchRecent(uri, name, content);
+        }
         return o;
     }
 
@@ -166,6 +188,57 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) { }
         String seg = uri.getLastPathSegment();
         return seg == null ? "document.md" : seg.substring(seg.lastIndexOf('/') + 1);
+    }
+
+    // ---- Archivos recientes (pantalla de inicio) ----
+
+    private JSONArray readRecents() {
+        try { return new JSONArray(prefs.getString("recents", "[]")); }
+        catch (Exception e) { return new JSONArray(); }
+    }
+
+    private String snippet(String content) {
+        if (content == null) return "";
+        for (String line : content.split("\n")) {
+            String t = line.replaceFirst("^[#>\\-*+\\s`|]+", "").trim();
+            if (!t.isEmpty()) return t.length() > 90 ? t.substring(0, 90) : t;
+        }
+        return "";
+    }
+
+    private void touchRecent(Uri uri, String name, String content) {
+        try {
+            String key = uri.toString();
+            JSONArray list = new JSONArray();
+            list.put(new JSONObject().put("uri", key).put("name", name)
+                    .put("time", System.currentTimeMillis()).put("snippet", snippet(content)));
+            JSONArray old = readRecents();
+            for (int i = 0; i < old.length() && list.length() < MAX_RECENTS; i++) {
+                JSONObject o = old.getJSONObject(i);
+                if (!key.equals(o.optString("uri"))) list.put(o);
+            }
+            prefs.edit().putString("recents", list.toString()).apply();
+        } catch (Exception ignored) { }
+    }
+
+    private void removeRecent(String uri) {
+        try {
+            JSONArray list = new JSONArray(), old = readRecents();
+            for (int i = 0; i < old.length(); i++) {
+                JSONObject o = old.getJSONObject(i);
+                if (!uri.equals(o.optString("uri"))) list.put(o);
+            }
+            prefs.edit().putString("recents", list.toString()).apply();
+        } catch (Exception ignored) { }
+    }
+
+    private static String baseName(String path) {
+        return path.substring(path.lastIndexOf('/') + 1);
+    }
+
+    private static int persistFlags() {
+        return Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION;
     }
 
     private String readText(Uri uri) throws Exception {
@@ -196,12 +269,13 @@ public class MainActivity extends Activity {
             Uri uri = data.getData();
             try {
                 getContentResolver().takePersistableUriPermission(uri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
             } catch (Exception ignored) { }
             if (req == REQ_OPEN) {
                 resolve(id, fileJson(uri, true));
             } else {
                 writeText(uri, pendingSaveContent);
+                touchRecent(uri, displayName(uri), pendingSaveContent);
                 resolve(id, fileJson(uri, false));
             }
         } catch (Exception e) {
@@ -219,11 +293,38 @@ public class MainActivity extends Activity {
         catch (Exception x) { return new JSONObject(); }
     }
 
+    /** «Guardar como»: el usuario elige el formato (extensión) y luego el selector del sistema la carpeta. */
+    private void chooseFormatAndSave(int id, String content, String name, String title) {
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name;
+        String ext = dot > 0 ? name.substring(dot + 1).toLowerCase(Locale.ROOT) : "md";
+        // La extensión actual va primero (si es una de las conocidas).
+        java.util.List<String[]> list = new java.util.ArrayList<>();
+        for (String[] f : FORMATS) if (f[1].equals(ext)) list.add(f);
+        for (String[] f : FORMATS) if (!f[1].equals(ext)) list.add(f);
+        String[] labels = new String[list.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = list.get(i)[0] + "  (." + list.get(i)[1] + ")";
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setItems(labels, (d, which) -> {
+                    String[] f = list.get(which);
+                    pendingCallId = id;
+                    pendingSaveContent = content;
+                    startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                            .addCategory(Intent.CATEGORY_OPENABLE)
+                            .addFlags(persistFlags())
+                            .setType(f[2])
+                            .putExtra(Intent.EXTRA_TITLE, base + "." + f[1]), REQ_SAVE);
+                })
+                .setOnCancelListener(d -> {
+                    try { resolve(id, new JSONObject().put("cancelled", true)); } catch (Exception ignored) { }
+                })
+                .show();
+    }
+
     // ---- Puente JS (equivalente de preload.js) ----
 
     private class Bridge {
-        private final SharedPreferences prefs = getSharedPreferences("mdk", Context.MODE_PRIVATE);
-
         @JavascriptInterface
         public String getLanguage() {
             String saved = prefs.getString("language", null);
@@ -250,32 +351,51 @@ public class MainActivity extends Activity {
                 pendingCallId = id;
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT)
                         .addCategory(Intent.CATEGORY_OPENABLE)
+                        .addFlags(persistFlags())
                         .setType("*/*");
                 startActivityForResult(i, REQ_OPEN);
             });
         }
 
         @JavascriptInterface
-        public void saveFile(int id, String content, String filePath, boolean saveAs, String suggestedName) {
+        public void saveFile(int id, String content, String filePath, boolean saveAs, String suggestedName, String dialogTitle) {
             runOnUiThread(() -> {
                 Uri target = (saveAs || filePath == null || filePath.isEmpty()) ? null : files.get(filePath);
                 try {
                     if (target != null) {
                         writeText(target, content);
+                        touchRecent(target, baseName(filePath), content);
                         resolve(id, new JSONObject().put("cancelled", false).put("filePath", filePath));
                         return;
                     }
-                    pendingCallId = id;
-                    pendingSaveContent = content;
-                    Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT)
-                            .addCategory(Intent.CATEGORY_OPENABLE)
-                            .setType("text/markdown")
-                            .putExtra(Intent.EXTRA_TITLE, suggestedName);
-                    startActivityForResult(i, REQ_SAVE);
+                    String name = (filePath == null || filePath.isEmpty()) ? suggestedName : baseName(filePath);
+                    chooseFormatAndSave(id, content, name, dialogTitle);
                 } catch (Exception e) {
                     resolve(id, error(e));
                 }
             });
+        }
+
+        @JavascriptInterface
+        public String getRecents() {
+            return prefs.getString("recents", "[]");
+        }
+
+        @JavascriptInterface
+        public void openRecent(int id, String uri) {
+            runOnUiThread(() -> {
+                try {
+                    resolve(id, fileJson(Uri.parse(uri), true));
+                } catch (Exception e) {   // archivo movido, borrado o sin permiso: se quita de la lista
+                    removeRecent(uri);
+                    resolve(id, error(e));
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void removeRecent(String uri) {
+            MainActivity.this.removeRecent(uri);
         }
 
         /** labels = [titulo, mensaje, guardar, no guardar, cancelar]; responde 'save' | 'discard' | 'cancel'. */
