@@ -36,6 +36,13 @@ Go to [Releases](../../releases) and download the latest `.exe`:
 - **winget**: `winget install earubioc.MDK` (once the package is approved in the winget catalog)
 - **`MDK-portable.exe`**: runs directly, nothing to install.
 
+## Android
+
+**MD Kraft** is the Android edition of MDK: the same interface, adapted for phones, free for Markdown
+and text, with an optional one-time **Pro** unlock for other formats and live previews. It is
+developed in a separate, closed-source repository. Its privacy policy is the same
+[page](https://earubioc.github.io/mdk/privacidad.html) as MDK's.
+
 ## Requirements
 
 - Node.js 18+ and npm (only needed for development/packaging, not to run the compiled app)
@@ -49,20 +56,6 @@ npm start
 ```
 
 This opens the app in an Electron window over the code in `src/`.
-
-## Android (MD Kraft)
-
-The Android edition is published as **MD Kraft Markdown Editor** (`com.vdcprocesslab.mdkraft`; the name "MDK" is already taken on Google Play). **No ads, ever.** Markdown (`.md`) and text (`.txt`) are free forever. **MD Kraft Pro** (one-time in-app purchase, US$ 2.99, product id `pro`) unlocks opening/saving other formats (HTML, CSS, JS, JSON, Python, and any text or code file) and a **real preview of HTML, SVG and React components (`.tsx`)** to check what an AI generates. The Windows app stays free and ad-free. Step-by-step publishing guide: [`manual_android_para_dummies.md`](./manual_android_para_dummies.md) (Spanish).
-
-`android/` wraps the same UI from `src/` in a native WebView (no Capacitor; the only dependency is Google Play Billing; version comes from `package.json`). Open/save use the system file picker; **Export PDF** and **Print** open Android's print dialog (choose "Save as PDF"). It adds a home screen with recent files and a phone layout.
-
-The APK/AAB is built by GitHub Actions (`.github/workflows/android.yml`): download `MDKraft.apk` / `MDKraft.aab` from the run's artifacts (Summary page), or from the Release for a `vX.Y.Z` tag. To build locally you need JDK 17 and the Android SDK (platform 36):
-
-```bash
-cd android && ./gradlew assembleRelease   # -> app/build/outputs/apk/release/
-```
-
-Pull-request builds include a 🧪 button to simulate Pro on/off. Without signing secrets the APK is signed with a debug key (fine for sideloading, but it cannot update over a build made with another key). See the header of the workflow.
 
 ## Building the Windows executable
 
@@ -141,8 +134,3 @@ MDK/
 
 MIT, see [`LICENSE`](./LICENSE). Free to use, copy, modify, and redistribute, including
 commercially, with the sole condition of keeping the copyright notice.
-
-**Exception:** the `android/` folder (MD Kraft for Android: Pro purchase and branding)
-has its own license, [`android/LICENSE`](./android/LICENSE): you may read and build it for
-personal use, but not publish or redistribute it, nor reuse its name, icon or purchase
-configuration. The editor interface in `src/` stays MIT.

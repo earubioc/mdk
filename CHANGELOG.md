@@ -7,22 +7,6 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
-## Sin publicar
-
-- Nuevo: MD Kraft Markdown Editor, la edición Android (`android/`; id `com.vdcprocesslab.mdkraft`).
-  Misma interfaz de escritorio en un WebView, con diseño para teléfono (pestañas e índice
-  arriba, acciones en una segunda fila, herramientas de escritura y de vista abajo, zoom
-  flotante), pantalla de inicio con archivos recientes, selector de archivos del sistema,
-  Guardar / Guardar como y exportación a PDF por el diálogo de impresión de Android.
-- Sin anuncios. Markdown y texto gratis; **MD Kraft Pro** (compra única US$ 2,99, Play
-  Billing) desbloquea abrir y guardar HTML, CSS, JS, JSON, Python y demás formatos, y la
-  vista previa real de HTML, SVG y componentes React `.tsx`/`.jsx` (ventana aislada del
-  editor; React y Babel van incluidos, funciona sin internet).
-- Android: pellizco para zoom (editor y vista previa), botón PDF en la vista previa y código
-  ofuscado/reducido con R8 en las compilaciones de release.
-- El workflow genera el `.apk` y el `.aab` que exige Google Play; targetSdk 36.
-  Guía: `manual_android_para_dummies.md`.
-
 ## 3.0.0
 
 - Nuevo: las pestañas se reordenan arrastrándolas.

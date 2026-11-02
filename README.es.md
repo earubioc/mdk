@@ -36,6 +36,13 @@ Ir a [Releases](../../releases) y descargar el último `.exe`:
 - **winget**: `winget install earubioc.MDK` (cuando el paquete sea aprobado en el catálogo de winget)
 - **`MDK-portable.exe`**: se ejecuta directo, sin instalar nada.
 
+## Android
+
+**MD Kraft** es la edición Android de MDK: la misma interfaz adaptada a teléfonos, gratis para
+Markdown y texto, con un desbloqueo **Pro** opcional (pago único) para otros formatos y vistas
+previas en vivo. Se desarrolla en un repositorio aparte, de código cerrado. Su política de
+privacidad es la misma [página](https://earubioc.github.io/mdk/privacidad.html) de MDK.
+
 ## Requisitos
 
 - Node.js 18+ y npm (solo para desarrollo y empaquetado, no para usar la app ya compilada)
@@ -49,20 +56,6 @@ npm start
 ```
 
 Esto abre la app en una ventana Electron sobre el código en `src/`.
-
-## Android (MD Kraft)
-
-La edición Android se publica como **MD Kraft Markdown Editor** (`com.vdcprocesslab.mdkraft`; el nombre «MDK» ya existe en Google Play). **Sin anuncios, nunca.** Markdown (`.md`) y texto (`.txt`) son gratis para siempre. **MD Kraft Pro** (compra única dentro de la app, US$ 2,99, id de producto `pro`) desbloquea abrir y guardar otros formatos (HTML, CSS, JS, JSON, Python y cualquier archivo de texto o código) y una **vista previa real de HTML, SVG y componentes React (`.tsx`)** para revisar lo que genera una IA. La app de Windows sigue siendo gratis y sin anuncios. Guía paso a paso para publicar: [`manual_android_para_dummies.md`](./manual_android_para_dummies.md).
-
-`android/` envuelve la misma interfaz de `src/` en un WebView nativo (sin Capacitor; la única dependencia es Google Play Billing; la versión sale de `package.json`). Abrir/guardar usan el selector de archivos del sistema; **Exportar PDF** e **Imprimir** abren el diálogo de impresión de Android (elige «Guardar como PDF»). Añade una pantalla de inicio con archivos recientes y un diseño para teléfono.
-
-El APK/AAB lo compila GitHub Actions (`.github/workflows/android.yml`): descarga `MDKraft.apk` / `MDKraft.aab` de los artefactos de la ejecución (página Summary), o del Release cuando se sube un tag `vX.Y.Z`. Para compilar en local necesitas JDK 17 y el SDK de Android (plataforma 36):
-
-```bash
-cd android && ./gradlew assembleRelease   # -> app/build/outputs/apk/release/
-```
-
-Las compilaciones de pull request traen un botón 🧪 para simular Pro encendido/apagado. Sin secrets de firma el APK se firma con una clave de depuración (sirve para instalar directo, pero no actualiza sobre un build hecho con otra clave). Ver el encabezado del workflow.
 
 ## Generar el ejecutable de Windows
 
@@ -147,8 +140,3 @@ MDK/
 
 MIT, ver [`LICENSE`](./LICENSE). Uso, copia, modificación y redistribución libres,
 incluso comercial, con la única condición de conservar el aviso de copyright.
-
-**Excepción:** la carpeta `android/` (MD Kraft para Android: compra Pro y marca) tiene su
-propia licencia, [`android/LICENSE`](./android/LICENSE): puedes leerla y compilarla para
-uso personal, pero no publicarla ni redistribuirla, ni reutilizar su nombre, ícono o
-configuración de compras. La interfaz del editor en `src/` sigue siendo MIT.
