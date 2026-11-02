@@ -206,7 +206,9 @@ distinto en cada subida.
          marca los formatos Pro con 🔒. Los botones **🔓 Pro** y **🧪** están arriba.
    - [ ] Con **🧪 Pro ON**: se abren y guardan HTML y código; en un `.html`, `.svg`, `.tsx`
          o `.jsx` aparece el botón **▶ Vista previa** y muestra el resultado en una ventana
-         aparte (✕ para volver).
+         aparte. En esa ventana: **pellizco** para acercar/alejar, botón **PDF** (diálogo de
+         impresión → «Guardar como PDF») y **✕** para volver.
+   - [ ] En el editor, el **pellizco con dos dedos** cambia el tamaño de letra.
 4. Para probar el **cobro real** necesitas la versión instalada **desde Google Play**
    (parte 7.5), no el APK: el botón 🔓 Pro solo puede comprar si Play lo instaló.
 

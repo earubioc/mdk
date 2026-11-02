@@ -18,6 +18,8 @@ la app muestre lo mismo.
   Billing) desbloquea abrir y guardar HTML, CSS, JS, JSON, Python y demás formatos, y la
   vista previa real de HTML, SVG y componentes React `.tsx`/`.jsx` (ventana aislada del
   editor; React y Babel van incluidos, funciona sin internet).
+- Android: pellizco para zoom (editor y vista previa), botón PDF en la vista previa y código
+  ofuscado/reducido con R8 en las compilaciones de release.
 - El workflow genera el `.apk` y el `.aab` que exige Google Play; targetSdk 36.
   Guía: `manual_android_para_dummies.md`.
 

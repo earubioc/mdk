@@ -44,7 +44,10 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            // R8: ofusca y reduce el código (los nombres de la clase del puente JS se conservan, ver proguard-rules.pro).
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig System.getenv('MDK_KEYSTORE') ? signingConfigs.release : signingConfigs.debug
         }
     }

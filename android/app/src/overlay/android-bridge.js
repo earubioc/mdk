@@ -133,6 +133,25 @@
   };
   if (tabsEl) new MutationObserver(syncHtmlBtn).observe(tabsEl, { childList: true, subtree: true, characterData: true });
 
+  // Pellizco con dos dedos sobre el documento = zoom (el del WebView está desactivado a propósito:
+  // aquí cambia el tamaño de letra del editor/vista previa, igual que los botones A+ / A−).
+  (function () {
+    const area = document.querySelector('.workspace');
+    if (!area) return;
+    const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    let last = 0;
+    area.addEventListener('touchstart', (e) => { last = e.touches.length === 2 ? dist(e.touches) : 0; }, { passive: true });
+    area.addEventListener('touchmove', (e) => {
+      if (e.touches.length !== 2) return;
+      const d = dist(e.touches);
+      if (!last) { last = d; return; }   // el segundo dedo llegó sin un touchstart limpio
+      const r = d / last;
+      if (r > 1.1) { if (menuCb) menuCb('zoom-in'); last = d; }
+      else if (r < 0.9) { if (menuCb) menuCb('zoom-out'); last = d; }
+    }, { passive: true });
+    area.addEventListener('touchend', (e) => { if (e.touches.length < 2) last = 0; }, { passive: true });
+  })();
+
   // Zoom flotante (teléfono): dos botoncitos translúcidos en la esquina inferior derecha del documento.
   const workspace = document.querySelector('.workspace');
   if (workspace) {

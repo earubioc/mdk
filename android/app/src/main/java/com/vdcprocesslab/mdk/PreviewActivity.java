@@ -1,7 +1,11 @@
 package com.vdcprocesslab.mdk;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
+import android.print.PrintAttributes;
+import android.print.PrintManager;
+import android.widget.LinearLayout;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import org.json.JSONObject;
@@ -48,18 +52,34 @@ public class PreviewActivity extends Activity {
         }
     }
 
+    private TextView button(String label) {
+        TextView t = new TextView(this);
+        t.setText(label);
+        t.setTextColor(0xFFFFFFFF);
+        t.setTextSize(16);
+        t.setGravity(Gravity.CENTER);
+        t.setBackgroundColor(0xB3222222);
+        return t;
+    }
+
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(0xFF222222);
 
-        WebView web = new WebView(this);
+        final WebView web = new WebView(this);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
+        // Pellizco para acercar/alejar (necesita los controles integrados; los botones +/- se ocultan).
+        s.setSupportZoom(true);
+        s.setBuiltInZoomControls(true);
+        s.setDisplayZoomControls(false);
+        s.setUseWideViewPort(true);          // páginas sin <meta viewport> se ven como en un navegador
+        s.setLoadWithOverviewMode(true);
         web.setWebViewClient(new WebViewClient() {
             // Sirve las librerías incluidas en la app (React y Babel) a la página de vista previa, sin internet.
             @Override
@@ -78,19 +98,29 @@ public class PreviewActivity extends Activity {
         });
         web.loadDataWithBaseURL("https://preview.local/", buildPage(), "text/html", "UTF-8", null);
 
-        TextView close = new TextView(this);
-        close.setText("✕");
-        close.setTextColor(0xFFFFFFFF);
-        close.setTextSize(20);
-        close.setGravity(Gravity.CENTER);
-        close.setBackgroundColor(0xB3222222);
+        TextView close = button("✕");
         close.setOnClickListener(v -> finish());
 
+        // Exportar a PDF: el diálogo de impresión de Android incluye «Guardar como PDF».
+        TextView pdf = button("PDF");
+        pdf.setOnClickListener(v -> {
+            String job = pendingName.isEmpty() ? "MD Kraft" : pendingName.replaceFirst("\\.[^.]+$", "");
+            ((PrintManager) getSystemService(Context.PRINT_SERVICE))
+                    .print(job, web.createPrintDocumentAdapter(job), new PrintAttributes.Builder().build());
+        });
+
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams pdfLp = new LinearLayout.LayoutParams(190, 132);
+        pdfLp.setMargins(0, 0, 16, 0);
+        bar.addView(pdf, pdfLp);
+        bar.addView(close, new LinearLayout.LayoutParams(132, 132));
+
         FrameLayout.LayoutParams wp = new FrameLayout.LayoutParams(-1, -1);
-        FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(132, 132, Gravity.TOP | Gravity.END);
+        FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.END);
         cp.setMargins(0, 24, 24, 0);
         root.addView(web, wp);
-        root.addView(close, cp);
+        root.addView(bar, cp);
         setContentView(root);
 
         root.setOnApplyWindowInsetsListener((v, insets) -> {
