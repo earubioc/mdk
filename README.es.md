@@ -36,6 +36,13 @@ Ir a [Releases](../../releases) y descargar el último `.exe`:
 - **winget**: `winget install earubioc.MDK` (cuando el paquete sea aprobado en el catálogo de winget)
 - **`MDK-portable.exe`**: se ejecuta directo, sin instalar nada.
 
+## Android
+
+**MD Kraft** es la edición Android de MDK: la misma interfaz adaptada a teléfonos, gratis para
+Markdown y texto, con un desbloqueo **Pro** opcional (pago único) para otros formatos y vistas
+previas en vivo. Se desarrolla en un repositorio aparte, de código cerrado. Su política de
+privacidad es la misma [página](https://earubioc.github.io/mdk/privacidad.html) de MDK.
+
 ## Requisitos
 
 - Node.js 18+ y npm (solo para desarrollo y empaquetado, no para usar la app ya compilada)

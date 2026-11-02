@@ -22,6 +22,10 @@ Thumbs.db
 README.pdf
 *.pdf
 
+# Llaves de firma de Android: nunca al repositorio
+*.jks
+*.keystore
+
 # Variables de entorno locales (por si se agregan credenciales de publicación más adelante)
 .env
 .env.local
