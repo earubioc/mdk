@@ -70,6 +70,7 @@
   // en src/i18n/strings.js (claves "changelog.X.Y.Z"); mantenerlo en sync
   // con CHANGELOG.md en la raíz del proyecto, que tiene el detalle completo.
   const CHANGELOG = [
+    { version: '3.1.1', textKey: 'changelog.3.1.1' },
     { version: '3.1.0', textKey: 'changelog.3.1.0' },
     { version: '3.0.0', textKey: 'changelog.3.0.0' },
     { version: '2.9.0', textKey: 'changelog.2.9.0' },

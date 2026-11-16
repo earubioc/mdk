@@ -7,6 +7,13 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## 3.1.1
+
+- Nuevo: la ventana de vista previa de HTML/SVG tiene menú Archivo con Exportar a PDF
+  (Ctrl+S) e Imprimir (Ctrl+P). El PDF sale tal como se ve: una sola página continua del
+  tamaño exacto del contenido, sin márgenes ni recortes (si es muy alta, se parte en
+  páginas del mismo ancho).
+
 ## 3.1.0
 
 - Nuevo: pantalla de inicio con tarjetas de archivos recientes (nombre, primera línea,

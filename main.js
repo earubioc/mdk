@@ -658,7 +658,52 @@ ipcMain.handle('preview-code', async (_evt, { kind, name, code }) => {
       partition: 'mdk-preview-' + Date.now()
     }
   });
-  win.setMenuBarVisibility(false);
+  // Menú nativo (lo maneja el proceso principal; la página aislada no ve nada de esto).
+  const baseName = String(name || 'preview').replace(/\.[^.]+$/, '');
+  const exportPdf = async () => {
+    if (win.isDestroyed()) return;
+    const res = await dialog.showSaveDialog(win, {
+      title: t('dialog.exportPdfTitle'),
+      defaultPath: baseName + '.pdf',
+      filters: [{ name: t('dialog.filterPdf'), extensions: ['pdf'] }]
+    });
+    if (res.canceled || !res.filePath) return;
+    try {
+      // "Tal como se ve": una sola página continua del tamaño exacto del contenido
+      // (ancho y alto de la página tal como se renderiza en la ventana), sin
+      // márgenes ni cortes. Si es más alta que el máximo de Chromium (~200 in),
+      // se parte en páginas del mismo ancho.
+      const m = await win.webContents.executeJavaScript(
+        '({w:Math.ceil(Math.max(document.documentElement.scrollWidth,document.body?document.body.scrollWidth:0)),' +
+        'h:Math.ceil(Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0))})'
+      );
+      const wIn = Math.max(2, m.w / 96);
+      let hIn = Math.max(2, (m.h + 2) / 96);
+      if (hIn > 190) hIn = wIn * 1.4142;
+      const buf = await win.webContents.printToPDF({
+        printBackground: true,
+        preferCSSPageSize: false,
+        pageSize: { width: wIn, height: hIn },
+        margins: { marginType: 'none' }
+      });
+      fs.writeFileSync(res.filePath, buf);
+      shell.showItemInFolder(res.filePath);
+    } catch (err) {
+      dialog.showErrorBox(t('dialog.pdfErrorTitle'), String(err.message || err));
+    }
+  };
+  const printPage = () => { if (!win.isDestroyed()) win.webContents.print({ printBackground: true }); };
+  win.setMenu(Menu.buildFromTemplate([{
+    label: t('preview.menuFile'),
+    submenu: [
+      { label: t('preview.exportPdf'), accelerator: 'CmdOrCtrl+S', click: exportPdf },
+      { label: t('preview.print'), accelerator: 'CmdOrCtrl+P', click: printPage },
+      { type: 'separator' },
+      { label: t('preview.close'), accelerator: 'Esc', click: () => win.close() }
+    ]
+  }]));
+  win.setAutoHideMenuBar(false);
+  win.setMenuBarVisibility(true);
   win.webContents.session.setPermissionRequestHandler((_w, _p, cb) => cb(false));
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (e) => e.preventDefault());
