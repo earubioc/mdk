@@ -2,6 +2,14 @@ const { contextBridge, ipcRenderer } = require('electron');
 const STRINGS = require('./src/i18n/strings.js');
 
 contextBridge.exposeInMainWorld('mdk', {
+  // Edición: 'store' (paquete de Microsoft Store) o 'direct' (GitHub, winget, portable)
+  edition: ipcRenderer.sendSync('get-edition-sync'),
+  getRecents: () => ipcRenderer.invoke('get-recents'),
+  removeRecent: (filePath) => ipcRenderer.invoke('remove-recent', filePath),
+  openDonate: () => ipcRenderer.invoke('open-donate'),
+  previewCode: (kind, name, code) => ipcRenderer.invoke('preview-code', { kind, name, code }),
+  onRecentsChanged: (callback) => ipcRenderer.on('recents-changed', () => callback()),
+
   // Archivo
   openFile: () => ipcRenderer.invoke('dialog-open'),
   openPath: (filePath) => ipcRenderer.invoke('read-file-path', filePath),

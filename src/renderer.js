@@ -70,6 +70,7 @@
   // en src/i18n/strings.js (claves "changelog.X.Y.Z"); mantenerlo en sync
   // con CHANGELOG.md en la raíz del proyecto, que tiene el detalle completo.
   const CHANGELOG = [
+    { version: '3.1.0', textKey: 'changelog.3.1.0' },
     { version: '3.0.0', textKey: 'changelog.3.0.0' },
     { version: '2.9.0', textKey: 'changelog.2.9.0' },
     { version: '2.8.1', textKey: 'changelog.2.8.1' },
@@ -478,6 +479,7 @@
       });
       tabsList.appendChild(tab);
     });
+    syncHtmlPreviewBtn();
   }
 
   const TAB_DRAG_TYPE = 'application/x-mdk-tab';
@@ -543,9 +545,11 @@
     if (idx === -1) return;
     doc = documents[idx];
     documents.splice(idx, 1);
+    let closedLast = false;
     if (documents.length === 0) {
       const fresh = createDocument();
       activeId = fresh.id;
+      closedLast = true;
     } else if (doc.id === activeId) {
       const next = documents[Math.max(0, idx - 1)] || documents[0];
       activeId = next.id;
@@ -554,6 +558,9 @@
     renderTabs();
     refreshAll();
     syncDirtyToMain();
+    // Cerrar la última pestaña devuelve a la pantalla de inicio (recientes); el
+    // documento en blanco que queda detrás es solo el lienzo vacío.
+    if (closedLast) showStart();
   }
 
   // ---------- helpers: selección de líneas y formato ----------
@@ -1132,6 +1139,10 @@
       case 'export-pdf': doExportPdf(); break;
       case 'print': doPrintNative(); break;
       case 'save-all-and-quit': saveAllAndQuit(); break;
+      case 'show-start': showStart(); break;
+      case 'hide-start': hideStart(); break;
+      case 'donate': if (window.mdk.openDonate) window.mdk.openDonate(); break;
+      case 'preview-code': doPreviewCode(); break;
       case 'toggle-sidebar': toggleSidebar(); break;
       case 'toggle-search': toggleSearch(); break;
       case 'search-next': findNext(1); break;
@@ -1208,6 +1219,7 @@
     if (!infoModal.hidden) hideInfoModal();
     if (!skinsModal.hidden) hideSkinsModal();
     if (!pageModal.hidden) hidePageModal();
+    if (startScreen && !startScreen.hidden) hideStart();
     if (!compareModal.hidden) hideCompareModal();
     if (compareMode) exitCompare();
   });
@@ -1259,6 +1271,7 @@
   // arrastrar un archivo a la ventana) en una pestaña: reutiliza la pestaña
   // activa si está vacía y sin título, si no, abre una nueva.
   function loadFileIntoWorkspace(filePath, content) {
+    hideStart();
     saveEditorIntoActiveDoc();
     const active = getActiveDoc();
     let doc;
@@ -1286,10 +1299,11 @@
   // Abre un archivo a partir de su ruta en disco (arrastrar y soltar, o un
   // .md abierto por asociación/doble clic mientras MDK ya está corriendo).
   async function openExternalPath(filePath) {
-    if (!window.mdk || !window.mdk.openPath) return;
+    if (!window.mdk || !window.mdk.openPath) return false;
     const result = await window.mdk.openPath(filePath);
-    if (result.cancelled) return;
+    if (result.cancelled) return false;
     loadFileIntoWorkspace(result.filePath, result.content);
+    return true;
   }
 
   async function doSave(saveAs) {
@@ -1474,6 +1488,127 @@
     await window.mdk.printNative(html, { widthMm: pd.w, heightMm: pd.h });
   }
 
+  // ---------- pantalla de inicio (recientes), edición y vista previa HTML/SVG ----------
+  // Todo esto es opcional: solo existe si el puente (preload.js en escritorio)
+  // expone la función correspondiente; la edición Android trae lo suyo y no la usa.
+
+  const startScreen = document.getElementById('startScreen');
+  const startList = document.getElementById('startList');
+  const donateBtn = document.getElementById('donateBtn');
+  const htmlPreviewBtn = document.getElementById('htmlPreviewBtn');
+  const hasStart = !!(window.mdk && window.mdk.getRecents);
+  const hasPreview = !!(window.mdk && window.mdk.previewCode);
+  const SUPPORTED_EXTS = ['md', 'markdown', 'txt', 'html', 'htm', 'css', 'js', 'ts', 'json', 'xml', 'yaml', 'yml', 'csv', 'py', 'java', 'c', 'cpp', 'sql', 'sh', 'svg', 'tsx', 'jsx', 'tex', 'log'];
+  const KIND_OF = { md: 'md', markdown: 'md', txt: 'txt', log: 'txt', tex: 'txt', html: 'web', htm: 'web', css: 'web', svg: 'web', csv: 'data',
+    js: 'code', ts: 'code', tsx: 'code', jsx: 'code', json: 'code', xml: 'code', yaml: 'code', yml: 'code', py: 'code', java: 'code', c: 'code', cpp: 'code', sql: 'code', sh: 'code' };
+
+  function agoText(ts) {
+    if (!ts) return '';
+    const m = Math.max(0, Math.round((Date.now() - ts) / 60000));
+    if (m < 1) return t('time.now');
+    if (m < 60) return t('time.minAgo', { n: m });
+    const h = Math.round(m / 60);
+    if (h < 24) return t('time.hoursAgo', { n: h });
+    const d = Math.round(h / 24);
+    if (d === 1) return t('time.yesterday');
+    if (d < 7) return t('time.daysAgo', { n: d });
+    return new Date(ts).toLocaleDateString(currentLang === 'es' ? 'es' : 'en', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  async function renderStart() {
+    let list = [];
+    try { list = await window.mdk.getRecents(); } catch (e) { list = []; }
+    startList.textContent = '';
+    if (!list.length) {
+      const empty = document.createElement('div');
+      empty.className = 'start-empty';
+      empty.textContent = t('home.empty');
+      startList.appendChild(empty);
+      return;
+    }
+    list.forEach((r) => {
+      const ext = (r.name.split('.').pop() || '').toLowerCase();
+      const card = document.createElement('div');
+      card.className = 'start-card';
+      const badge = document.createElement('div');
+      badge.className = 'start-badge start-badge--' + (r.name.indexOf('.') !== -1 ? (KIND_OF[ext] || 'txt') : 'txt');
+      badge.textContent = r.name.indexOf('.') !== -1 ? ext.slice(0, 4) : 'txt';
+      const body = document.createElement('div');
+      body.className = 'start-body';
+      const name = document.createElement('div');
+      name.className = 'start-name';
+      name.textContent = r.name;
+      body.appendChild(name);
+      if (r.snippet) {
+        const sn = document.createElement('div');
+        sn.className = 'start-snip';
+        sn.textContent = r.snippet;
+        body.appendChild(sn);
+      }
+      const time = document.createElement('div');
+      time.className = 'start-time';
+      time.textContent = agoText(r.time);
+      body.appendChild(time);
+      const del = document.createElement('button');
+      del.className = 'start-del';
+      del.type = 'button';
+      del.title = t('home.remove');
+      del.textContent = '×';
+      del.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await window.mdk.removeRecent(r.path);
+        renderStart();
+      });
+      card.addEventListener('click', async () => {
+        const ok = await openExternalPath(r.path);
+        if (ok) hideStart(); else renderStart();   // ya no existe o no se pudo abrir
+      });
+      card.appendChild(badge);
+      card.appendChild(body);
+      card.appendChild(del);
+      startList.appendChild(card);
+    });
+  }
+
+  function showStart() {
+    if (!hasStart) return;
+    const bar = document.querySelector('.tabbar');
+    startScreen.style.top = (bar ? Math.round(bar.getBoundingClientRect().bottom) : 44) + 'px';
+    renderStart();
+    startScreen.hidden = false;
+  }
+  function hideStart() { if (startScreen) startScreen.hidden = true; }
+
+  function previewKindOfActive() {
+    const doc = getActiveDoc();
+    const ext = doc && doc.filePath ? (doc.filePath.split('.').pop() || '').toLowerCase() : '';
+    return ext === 'svg' ? 'svg' : (ext === 'html' || ext === 'htm' ? 'html' : null);
+  }
+  function syncHtmlPreviewBtn() {
+    if (htmlPreviewBtn && hasPreview) htmlPreviewBtn.hidden = !previewKindOfActive();
+  }
+  function doPreviewCode() {
+    const kind = previewKindOfActive();
+    if (!kind) return;
+    saveEditorIntoActiveDoc();
+    window.mdk.previewCode(kind, fileBaseName(getActiveDoc().filePath), editor.value);
+  }
+
+  // Elementos que solo aplican si el puente los soporta / según la edición.
+  if (!hasStart) { const b = document.querySelector('[data-action="show-start"]'); if (b) b.remove(); }
+  if (!hasPreview && htmlPreviewBtn) htmlPreviewBtn.remove();
+  if (donateBtn && window.mdk && window.mdk.edition === 'direct' && window.mdk.openDonate) donateBtn.hidden = false;
+  else if (donateBtn) donateBtn.remove();
+  if (hasStart && window.mdk.onRecentsChanged) window.mdk.onRecentsChanged(() => { if (!startScreen.hidden) renderStart(); });
+  if (hasStart) {
+    document.getElementById('startNew').addEventListener('click', () => {
+      hideStart();
+      const a = getActiveDoc();
+      if (!(a && !a.filePath && !a.isDirty && a.content === '' && !editor.value)) doNewTab();
+    });
+    document.getElementById('startOpen').addEventListener('click', () => { hideStart(); doOpen(); });
+  }
+
   // ---------- inicio ----------
 
   applyStaticTranslations();
@@ -1498,6 +1633,16 @@
   updatePreview();
   updateOutline();
 
+  // Al arrancar sin archivo por asociación, muestra la pantalla de inicio si hay recientes.
+  if (hasStart) {
+    setTimeout(async () => {
+      if (documents.some((d) => d.filePath)) return;
+      let list = [];
+      try { list = await window.mdk.getRecents(); } catch (e) { /* sin recientes */ }
+      if (list.length && !documents.some((d) => d.filePath)) showStart();
+    }, 200);
+  }
+
   // Abrir un .md por asociación de archivos (doble clic) o desde una segunda
   // instancia de la app (ya corriendo): el proceso principal ya leyó el
   // contenido y lo empuja aquí por IPC — ver main.js.
@@ -1521,7 +1666,7 @@
     const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
     if (!file || !file.path) return;
     const ext = (file.name || '').split('.').pop().toLowerCase();
-    if (['md', 'markdown', 'txt'].includes(ext)) openExternalPath(file.path);
+    if (SUPPORTED_EXTS.includes(ext)) openExternalPath(file.path);
   });
 
   if (window.mdk && window.mdk.getAppVersion) {

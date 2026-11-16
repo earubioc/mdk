@@ -7,6 +7,26 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## 3.1.0
+
+- Nuevo: pantalla de inicio con tarjetas de archivos recientes (nombre, primera línea,
+  hace cuánto, quitar de la lista), botones Nuevo y Abrir. Aparece al arrancar si hay
+  recientes y desde el botón 🕘 o Archivo → Inicio.
+- Nuevo: abrir y guardar más formatos: HTML, CSS, JS, TS, JSON, XML, YAML, CSV, Python,
+  Java, C/C++, SQL, Shell, SVG, TSX/JSX, LaTeX y log (antes solo `.md`/`.txt`). También
+  por doble clic y arrastrar y soltar.
+- Nuevo: vista previa de HTML y SVG en una ventana aislada (sandbox, sin acceso a la
+  app ni a archivos locales, sin abrir otras ventanas), botón "▶ Vista previa".
+- Nuevo: dos ediciones del mismo código. Edición directa (GitHub, winget, portable): todo
+  disponible y botón ☕ para apoyar el proyecto (PayPal). Edición Microsoft Store: lleva
+  la puerta "Pro" para los formatos distintos de Markdown y texto, hoy abierta (se cierra
+  cuando exista el complemento de la Store). Ver DECISIONS.md #37.
+- Nuevo: en la edición Store, MDK Pro es un complemento de compra única (comprar o canjear
+  un código desde el propio diálogo, menú Archivo → MDK Pro…). La licencia se confirma con
+  la Store y se recuerda hasta 30 días sin conexión.
+- Cambio: cerrar la última pestaña vuelve a la pantalla de inicio (recientes).
+- Cambio: se quitó el cuadro de winget de la landing hasta que se apruebe el paquete.
+
 ## 3.0.0
 
 - Nuevo: las pestañas se reordenan arrastrándolas.

@@ -119,6 +119,9 @@ MDK/
   own colors and typography)
 - **Document info**: ⓘ button: words, characters, lines, estimated tokens, and what's new
 - **Export to PDF**: "Export PDF" button or Ctrl+P: saves a `.pdf` with the active skin
+- **Start screen**: recent files as cards (🕘 button or File → Home); also shown at launch when you have recent files
+- **More formats**: open and save HTML, CSS, JS, TS, JSON, XML, YAML, CSV, Python, Java, C/C++, SQL, Shell, SVG, TSX/JSX, LaTeX and log files, besides Markdown and text
+- **HTML/SVG preview**: "▶ Preview" button opens the file in an isolated window (no access to the app or your files)
 - **Print**: Ctrl+Shift+P opens the native Windows print dialog
 - **Page setup**: "Page…" button: paper size (Letter, Oficio, Legal, A4, A5, A3), orientation and margins, used by PDF export and printing; the "Sheet" button previews the document as a sheet of that size
 - **Math**: LaTeX formulas inline (`$E=mc^2$`) and as blocks (`$$ ... $$`), rendered as equations in the preview, comparison and PDF (built-in converter; covers fractions, roots, sums, integrals, matrices and more)

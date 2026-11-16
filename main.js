@@ -1,4 +1,5 @@
 const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron');
+const childProcess = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const STRINGS = require('./src/i18n/strings.js');
@@ -62,8 +63,134 @@ function send(channel, payload) {
 // comandos (tanto al asociar .md a MDK como al arrastrar un archivo sobre el
 // ícono del programa). Sin este bloque, ese argumento simplemente se ignora
 // y la app arranca con un documento en blanco — el bug reportado.
+// Formatos: Markdown y texto siempre son gratis; el resto (código, web, datos) es
+// "Pro" en la edición Store. La edición directa (GitHub, winget, portable) los
+// tiene todos. La puerta está ABIERTA mientras PRO_GATE_ENABLED sea false (se
+// cierra cuando exista el complemento de la Store). Ver DECISIONS.md #37.
+const FREE_EXTS = ['md', 'markdown', 'txt'];
+const PRO_EXTS = ['html', 'htm', 'css', 'js', 'ts', 'json', 'xml', 'yaml', 'yml', 'csv', 'py', 'java', 'c', 'cpp', 'sql', 'sh', 'svg', 'tsx', 'jsx', 'tex', 'log'];
+const ALL_EXTS = FREE_EXTS.concat(PRO_EXTS);
+const EDITION = process.windowsStore ? 'store' : 'direct';
+const PRO_GATE_ENABLED = true;   // solo afecta a la edición 'store'
+const DONATE_URL = 'https://www.paypal.com/donate/?business=X3L55L7U5FXJL&no_recurring=0&item_name=MDK+es+gratis+y+sin+anuncios.+Si+lo+usas+a+diario+y+quieres+que+siga+mejorando%2C+puedes+invitarme+un+caf%C3%A9.&currency_code=USD';
+
+function extOf(p) {
+  const m = /\.([A-Za-z0-9]+)$/.exec(String(p || ''));
+  return m ? m[1].toLowerCase() : '';
+}
+
 function isSupportedDocPath(p) {
-  return typeof p === 'string' && /\.(md|markdown|txt)$/i.test(p);
+  return typeof p === 'string' && ALL_EXTS.indexOf(extOf(p)) !== -1;
+}
+
+// ---------- licencia Pro de la edición Store ----------
+// El desbloqueo es un complemento (add-on) duradero de la Store con Product ID
+// STORE_ADDON_TOKEN. Electron no puede llamar a Windows.Services.Store, así que
+// se consulta con un script de Windows PowerShell 5.1 (los procesos hijos de la
+// app empaquetada comparten su identidad de paquete). El resultado se guarda en
+// mdk-settings.json con fecha: si no hay red, vale hasta 30 días sin reconfirmar.
+// Comprar y canjear códigos se hace en la propia Store (enlaces ms-windows-store://).
+const STORE_ADDON_TOKEN = 'mdkpro';
+const STORE_PRODUCT_ID = '9PKLBD74P3J7';          // ID de la app en la Store
+const PRO_OFFLINE_GRACE_MS = 30 * 24 * 3600 * 1000;
+let proCache = { pro: false, at: 0 };
+try {
+  const saved = readSettings().proLicense;
+  if (saved && typeof saved.at === 'number') proCache = { pro: !!saved.pro, at: saved.at };
+} catch (e) { /* sin caché */ }
+
+const LICENSE_PS = `
+$ErrorActionPreference = 'Stop'
+try {
+  Add-Type -AssemblyName System.Runtime.WindowsRuntime
+  [void][Windows.Services.Store.StoreContext, Windows.Services.Store, ContentType=WindowsRuntime]
+  $asTask = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
+    $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation\`1' })[0]
+  function Await($op, $type) {
+    $task = $asTask.MakeGenericMethod($type).Invoke($null, @($op))
+    [void]$task.Wait(20000)
+    if (-not $task.IsCompleted) { throw 'timeout' }
+    $task.Result
+  }
+  $ctx = [Windows.Services.Store.StoreContext]::GetDefault()
+  $lic = Await ($ctx.GetAppLicenseAsync()) ([Windows.Services.Store.StoreAppLicense])
+  $pro = $false
+  foreach ($kv in $lic.AddOnLicenses) {
+    if ($kv.Value.InAppOfferToken -eq '${STORE_ADDON_TOKEN}' -and $kv.Value.IsActive) { $pro = $true }
+  }
+  Write-Output ('{"ok":true,"pro":' + $pro.ToString().ToLower() + '}')
+} catch {
+  Write-Output ('{"ok":false,"error":"' + ($_.Exception.Message -replace '[\\"\r\n]', ' ') + '"}')
+}
+`;
+
+function runLicenseCheck() {
+  return new Promise((resolve) => {
+    const encoded = Buffer.from(LICENSE_PS, 'utf16le').toString('base64');
+    childProcess.execFile('powershell.exe',
+      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encoded],
+      { timeout: 30000, windowsHide: true },
+      (err, stdout) => {
+        if (err) return resolve({ ok: false, error: String(err.message || err) });
+        try { resolve(JSON.parse(String(stdout).trim().split(/\r?\n/).pop())); }
+        catch (e) { resolve({ ok: false, error: 'respuesta inválida' }); }
+      });
+  });
+}
+
+// Consulta la Store y actualiza la caché. Si la consulta falla (sin red, etc.) no se toca la caché.
+let licenseCheckRunning = null;
+let lastLicenseError = '';
+function refreshProLicense() {
+  if (EDITION !== 'store') return Promise.resolve(proCache.pro);
+  if (licenseCheckRunning) return licenseCheckRunning;
+  licenseCheckRunning = runLicenseCheck().then((res) => {
+    licenseCheckRunning = null;
+    lastLicenseError = (res && !res.ok && res.error) ? String(res.error) : '';
+    if (res && res.ok) {
+      const changed = proCache.pro !== !!res.pro;
+      proCache = { pro: !!res.pro, at: Date.now() };
+      writeSettings({ ...readSettings(), proLicense: proCache });
+      if (changed) send('pro-changed', proCache.pro);
+    }
+    return proCache.pro;
+  });
+  return licenseCheckRunning;
+}
+
+function proUnlocked() {
+  if (EDITION === 'direct' || !PRO_GATE_ENABLED) return true;
+  return proCache.pro && (Date.now() - proCache.at) < PRO_OFFLINE_GRACE_MS;
+}
+
+// Diálogo de MDK Pro (Store): comprar, canjear un código o verificar. Devuelve true si Pro quedó activo.
+async function showProDialog() {
+  for (;;) {
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      buttons: [t('dialog.proBuy'), t('dialog.proRedeem'), t('dialog.proVerify'), t('dialog.close')],
+      defaultId: 0, cancelId: 3, noLink: true,
+      title: t('dialog.proTitle'),
+      message: t('dialog.proMessage')
+    });
+    if (response === 0) { shell.openExternal('ms-windows-store://pdp/?ProductId=' + STORE_PRODUCT_ID); return false; }
+    if (response === 1) { shell.openExternal('ms-windows-store://redeem'); return false; }
+    if (response === 2) {
+      if (await refreshProLicense() && proUnlocked()) return true;
+      await dialog.showMessageBox(mainWindow, { type: 'info', buttons: [t('dialog.ok')], title: t('dialog.proTitle'), message: t('dialog.proNotFound'), detail: lastLicenseError ? ('Detalle técnico: ' + lastLicenseError) : undefined });
+      continue;
+    }
+    return false;
+  }
+}
+
+// true si se puede abrir/guardar este archivo; si es un formato Pro sin
+// desbloquear, ofrece comprar/canjear y devuelve false (o true si ya lo desbloqueó).
+async function ensureProFor(filePath) {
+  const ext = extOf(filePath);
+  if (!ext || FREE_EXTS.indexOf(ext) !== -1 || proUnlocked()) return true;
+  if (await refreshProLicense() && proUnlocked()) return true;   // quizá compró hace un momento
+  return showProDialog();
 }
 
 function extractFilePathFromArgv(argv) {
@@ -73,8 +200,9 @@ function extractFilePathFromArgv(argv) {
   return candidates.length ? candidates[candidates.length - 1] : null;
 }
 
-function openFilePathInRenderer(filePath) {
+async function openFilePathInRenderer(filePath) {
   if (!filePath) return;
+  if (!(await ensureProFor(filePath))) return;
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
     send('open-file', { filePath, content });
@@ -95,8 +223,37 @@ function addRecentFile(filePath) {
   const settings = readSettings();
   let recent = Array.isArray(settings.recentFiles) ? settings.recentFiles : [];
   recent = [filePath, ...recent.filter((p) => p !== filePath)].slice(0, MAX_RECENT_FILES);
-  writeSettings({ ...settings, recentFiles: recent });
+  const meta = { ...(settings.recentMeta || {}), [filePath]: Date.now() };
+  Object.keys(meta).forEach((k) => { if (recent.indexOf(k) === -1) delete meta[k]; });
+  writeSettings({ ...settings, recentFiles: recent, recentMeta: meta });
   buildMenu();
+}
+
+// Primera línea con texto del documento, sin marcas de Markdown (para la tarjeta
+// de la pantalla de inicio).
+function snippetOf(filePath) {
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    const buf = Buffer.alloc(4096);
+    const n = fs.readSync(fd, buf, 0, 4096, 0);
+    fs.closeSync(fd);
+    const lines = buf.toString('utf-8', 0, n).split(/\r?\n/);
+    for (const line of lines) {
+      const s = line.replace(/^[#>\-*+\s`|]+/, '').trim();
+      if (s) return s.length > 90 ? s.slice(0, 90) : s;
+    }
+  } catch (e) { /* sin permiso o borrado */ }
+  return '';
+}
+
+function getRecentDetails() {
+  const meta = readSettings().recentMeta || {};
+  return getRecentFiles().map((p) => ({
+    path: p,
+    name: path.basename(p),
+    time: meta[p] || 0,
+    snippet: snippetOf(p)
+  }));
 }
 
 function getRecentFiles() {
@@ -113,7 +270,17 @@ function getRecentFiles() {
 }
 
 function clearRecentFiles() {
-  writeSettings({ ...readSettings(), recentFiles: [] });
+  writeSettings({ ...readSettings(), recentFiles: [], recentMeta: {} });
+  buildMenu();
+  send('recents-changed');
+}
+
+function removeRecentFile(filePath) {
+  const settings = readSettings();
+  const recent = (Array.isArray(settings.recentFiles) ? settings.recentFiles : []).filter((p) => p !== filePath);
+  const meta = { ...(settings.recentMeta || {}) };
+  delete meta[filePath];
+  writeSettings({ ...settings, recentFiles: recent, recentMeta: meta });
   buildMenu();
 }
 
@@ -152,6 +319,16 @@ if (!gotSingleInstanceLock) {
   app.whenReady().then(() => {
     createWindow();
     setupAutoUpdater();
+    if (EDITION === 'store' && PRO_GATE_ENABLED) {
+      refreshProLicense();
+      // Al volver a la ventana (p. ej. tras comprar en la Store) se reconfirma, como máximo cada 20 s.
+      let lastFocusCheck = 0;
+      mainWindow.on('focus', () => {
+        if (proCache.pro || Date.now() - lastFocusCheck < 20000) return;
+        lastFocusCheck = Date.now();
+        refreshProLicense();
+      });
+    }
     const initialFilePath = extractFilePathFromArgv(process.argv);
     if (initialFilePath) {
       // Esperar a que el renderer haya terminado de cargar (y por lo tanto ya
@@ -265,9 +442,13 @@ function buildMenu() {
         { label: t('menu.file.saveAs'), accelerator: 'CmdOrCtrl+Shift+S', click: () => send('menu-action', 'save-as') },
         { label: t('menu.file.closeTab'), accelerator: 'CmdOrCtrl+W', click: () => send('menu-action', 'close-tab') },
         { type: 'separator' },
+        { label: t('menu.file.home'), click: () => send('menu-action', 'show-start') },
+        { type: 'separator' },
         { label: t('menu.file.exportPdf'), accelerator: 'CmdOrCtrl+P', click: () => send('menu-action', 'export-pdf') },
         { label: t('menu.file.print'), accelerator: 'CmdOrCtrl+Shift+P', click: () => send('menu-action', 'print') },
         { type: 'separator' },
+        ...(EDITION === 'store' && PRO_GATE_ENABLED ? [{ label: t('menu.file.pro'), click: () => { showProDialog(); } }, { type: 'separator' }] : []),
+        ...(EDITION === 'direct' ? [{ label: t('menu.file.donate'), click: () => shell.openExternal(DONATE_URL) }, { type: 'separator' }] : []),
         isMac ? { role: 'close' } : { label: t('menu.file.quit'), accelerator: 'CmdOrCtrl+Q', click: () => app.quit() }
       ]
     },
@@ -380,12 +561,14 @@ ipcMain.handle('dialog-open', async () => {
     title: t('dialog.openTitle'),
     properties: ['openFile'],
     filters: [
-      { name: t('dialog.filterMarkdownText'), extensions: ['md', 'markdown', 'txt'] },
+      { name: t('dialog.filterMarkdownText'), extensions: FREE_EXTS },
+      { name: t('dialog.filterSupported'), extensions: ALL_EXTS },
       { name: t('dialog.filterAllFiles'), extensions: ['*'] }
     ]
   });
   if (result.canceled || !result.filePaths.length) return { cancelled: true };
   const filePath = result.filePaths[0];
+  if (!(await ensureProFor(filePath))) return { cancelled: true };
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
     addRecentFile(filePath);
@@ -400,6 +583,7 @@ ipcMain.handle('dialog-open', async () => {
 // soltado (File.path) pero no puede leer el disco directamente
 // (nodeIntegration desactivado), así que se lo pide al proceso principal.
 ipcMain.handle('read-file-path', async (_evt, filePath) => {
+  if (!(await ensureProFor(filePath))) return { cancelled: true };
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
     addRecentFile(filePath);
@@ -410,6 +594,13 @@ ipcMain.handle('read-file-path', async (_evt, filePath) => {
   }
 });
 
+const SAVE_FORMATS = [
+  ['HTML', ['html', 'htm']], ['CSS', ['css']], ['JavaScript', ['js']], ['TypeScript', ['ts']],
+  ['JSON', ['json']], ['XML', ['xml']], ['YAML', ['yaml', 'yml']], ['CSV', ['csv']],
+  ['Python', ['py']], ['Java', ['java']], ['C / C++', ['c', 'cpp']], ['SQL', ['sql']],
+  ['Shell', ['sh']], ['SVG', ['svg']], ['React (TSX/JSX)', ['tsx', 'jsx']], ['LaTeX', ['tex']], ['Log', ['log']]
+];
+
 ipcMain.handle('save-file', async (_evt, { content, filePath, saveAs }) => {
   let targetPath = filePath;
   if (saveAs || !targetPath) {
@@ -419,11 +610,13 @@ ipcMain.handle('save-file', async (_evt, { content, filePath, saveAs }) => {
       filters: [
         { name: t('dialog.filterMarkdown'), extensions: ['md'] },
         { name: t('dialog.filterPlainText'), extensions: ['txt'] },
+        ...SAVE_FORMATS.map(([name, exts]) => ({ name, extensions: exts })),
         { name: t('dialog.filterAllFiles'), extensions: ['*'] }
       ]
     });
     if (result.canceled || !result.filePath) return { cancelled: true };
     targetPath = result.filePath;
+    if (!(await ensureProFor(targetPath))) return { cancelled: true };
   }
   try {
     fs.writeFileSync(targetPath, content, 'utf-8');
@@ -433,6 +626,44 @@ ipcMain.handle('save-file', async (_evt, { content, filePath, saveAs }) => {
     dialog.showErrorBox(t('dialog.saveErrorTitle'), String(err.message || err));
     return { cancelled: true };
   }
+});
+
+// ---- IPC: edición, recientes, donar y vista previa aislada ----
+ipcMain.on('get-edition-sync', (evt) => { evt.returnValue = EDITION; });
+ipcMain.handle('get-recents', () => getRecentDetails());
+ipcMain.handle('remove-recent', (_evt, filePath) => { removeRecentFile(filePath); });
+ipcMain.handle('open-donate', () => { if (EDITION === 'direct') shell.openExternal(DONATE_URL); });
+
+// Vista previa de HTML/SVG en una ventana aparte: sin preload (sin acceso a la
+// API de MDK ni a Node), en sandbox, con sesión propia y sin permisos, y cargada
+// como data: URL (origen opaco: no puede leer archivos locales). Un enlace del
+// documento no navega esta ventana ni abre otras.
+ipcMain.handle('preview-code', async (_evt, { kind, name, code }) => {
+  if (!(await ensureProFor('x.html'))) return { ok: false };
+  let page = String(code || '');
+  if (kind === 'svg') {
+    page = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fff}svg{max-width:100vw;max-height:100vh;height:auto}</style></head><body>' + page + '</body></html>';
+  }
+  const url = 'data:text/html;base64,' + Buffer.from(page, 'utf-8').toString('base64');
+  if (url.length > 1900000) {
+    dialog.showErrorBox(t('dialog.previewErrorTitle'), t('dialog.previewTooLarge'));
+    return { ok: false };
+  }
+  const win = new BrowserWindow({
+    width: 1000, height: 720, title: (name || 'Preview'),
+    autoHideMenuBar: true,
+    webPreferences: {
+      sandbox: true, contextIsolation: true, nodeIntegration: false,
+      partition: 'mdk-preview-' + Date.now()
+    }
+  });
+  win.setMenuBarVisibility(false);
+  win.webContents.session.setPermissionRequestHandler((_w, _p, cb) => cb(false));
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  win.webContents.on('will-navigate', (e) => e.preventDefault());
+  win.loadURL(url);
+  return { ok: true };
 });
 
 // ---- IPC: exportar a PDF ----
