@@ -52,7 +52,7 @@ jobs:
 
             - **MDK-portable.exe**: runs directly, nothing to install.
             - **MDK-Setup-X.X.X.exe**: installer with a wizard (Desktop/Start Menu shortcuts). Updates itself automatically.
-            - Install via winget: `winget install earubioc.MDK`
+            - Also available on the [Microsoft Store](https://apps.microsoft.com/detail/9PKLBD74P3J7).
           files: |
             release/*.exe
             release/latest.yml

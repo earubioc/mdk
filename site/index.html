@@ -171,7 +171,6 @@ footer a{color:var(--mid)}
       <a class="btn btn-store" href="https://apps.microsoft.com/detail/9PKLBD74P3J7" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 2h9.5v9.5H2zM12.5 2H22v9.5h-9.5zM2 12.5h9.5V22H2zM12.5 12.5H22V22h-9.5z"/></svg><span><small><span data-l="es">Disponible en</span><span data-l="en">Get it from</span></small><b>Microsoft Store</b></span></a>
       <a class="btn btn-ghost" href="#funciones"><span data-l="es">Ver funciones</span><span data-l="en">See features</span></a>
     </div>
-    <div class="cmd"><span>winget install earubioc.MDK</span><button type="button" id="copyBtn" data-copy="winget install earubioc.MDK"><span data-l="es">Copiar</span><span data-l="en">Copy</span></button></div>
   </div>
   <div class="shot reveal"><div class="bar"><i></i><i></i><i></i></div><img src="img/split.png" alt="MDK en modo Ambos: editor y vista previa lado a lado"></div>
   <div class="stats reveal">
@@ -239,10 +238,9 @@ footer a{color:var(--mid)}
 
 <section class="section" id="instalar" style="padding-top:0"><div class="wrap">
   <div class="head reveal"><span class="eyebrow"><span data-l="es">Instalar</span><span data-l="en">Install</span></span>
-    <h2><span data-l="es">Cuatro formas de tenerlo</span><span data-l="en">Four ways to get it</span></h2></div>
-  <div class="cards4">
+    <h2><span data-l="es">Tres formas de tenerlo</span><span data-l="en">Three ways to get it</span></h2></div>
+  <div class="cards3">
     <div class="card reveal"><h3>Microsoft Store</h3><p><a href="https://apps.microsoft.com/detail/9PKLBD74P3J7"><b>mdk Markdown Editor</b></a></p><p style="margin-top:10px"><span data-l="es">Instalación firmada por Microsoft y actualizaciones por la tienda.</span><span data-l="en">Microsoft-signed install, updated through the Store.</span></p></div>
-    <div class="card reveal"><h3>winget</h3><p><code>winget install earubioc.MDK</code></p><p style="margin-top:10px"><span data-l="es">La forma más rápida. Se actualiza con <code>winget upgrade</code>.</span><span data-l="en">The fastest way. Update with <code>winget upgrade</code>.</span></p></div>
     <div class="card reveal"><h3><span data-l="es">Instalador</span><span data-l="en">Installer</span></h3><p><a data-dl="setup" href="https://github.com/earubioc/mdk/releases/latest"><b>MDK-Setup-<span data-ver>X.X.X</span>.exe</b></a></p><p style="margin-top:10px"><span data-l="es">Con accesos directos, asociación de archivos .md y actualizaciones automáticas.</span><span data-l="en">With shortcuts, .md file association and automatic updates.</span></p></div>
     <div class="card reveal"><h3>Portable</h3><p><a data-dl="portable" href="https://github.com/earubioc/mdk/releases/latest"><b>MDK-portable.exe</b></a></p><p style="margin-top:10px"><span data-l="es">Se ejecuta directo, sin instalar nada. Ideal para llevar en una USB.</span><span data-l="en">Runs directly, nothing to install. Great for a USB stick.</span></p></div>
   </div>
@@ -272,7 +270,7 @@ footer a{color:var(--mid)}
 
 <script>
 (function(){
-var VERSION='3.0.0'; /* actualizar en cada release */
+var VERSION='3.1.1'; /* actualizar en cada release */
 var BASE='https://github.com/earubioc/mdk/releases/';
 document.querySelectorAll('[data-dl=setup]').forEach(function(a){a.href=BASE+'download/v'+VERSION+'/MDK-Setup-'+VERSION+'.exe'});
 document.querySelectorAll('[data-dl=portable]').forEach(function(a){a.href=BASE+'latest/download/MDK-portable.exe'});
@@ -294,8 +292,6 @@ setLang(s||((navigator.language||'es').toLowerCase().indexOf('es')===0?'es':'en'
 var chips=document.querySelectorAll('.chip'),cards=document.querySelectorAll('.fc');
 chips.forEach(function(c){c.onclick=function(){chips.forEach(function(x){x.classList.remove('active')});c.classList.add('active');cards.forEach(function(k){k.hidden=c.dataset.f!=='all'&&k.dataset.c!==c.dataset.f})}});
 cards.forEach(function(k){k.onclick=function(){k.classList.toggle('open')}});
-var cb=document.getElementById('copyBtn');
-cb.onclick=function(){try{navigator.clipboard.writeText(cb.dataset.copy)}catch(e){}cb.style.opacity='.6';setTimeout(function(){cb.style.opacity=''},900)};
 var io='IntersectionObserver' in window?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.08}):null;
 document.querySelectorAll('.reveal').forEach(function(el){io?io.observe(el):el.classList.add('in')});
 })();

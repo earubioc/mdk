@@ -132,6 +132,9 @@ MDK/
 - **Información del documento**: botón ⓘ: palabras, caracteres, líneas, tokens
   estimados, y novedades de la app
 - **Exportar a PDF**: botón "Exportar PDF" o Ctrl+P: guarda un `.pdf` con el skin activo
+- **Pantalla de inicio**: archivos recientes como tarjetas (botón 🕘 o Archivo → Inicio); también aparece al arrancar si tienes recientes
+- **Más formatos**: abre y guarda HTML, CSS, JS, TS, JSON, XML, YAML, CSV, Python, Java, C/C++, SQL, Shell, SVG, TSX/JSX, LaTeX y log, además de Markdown y texto
+- **Vista previa de HTML/SVG**: el botón "▶ Vista previa" abre el archivo en una ventana aislada (sin acceso a la app ni a tus archivos)
 - **Imprimir**: Ctrl+Shift+P abre el diálogo de impresión nativo de Windows
 - **Configurar página**: botón "Página…": tamaño de papel (Carta, Oficio, Legal, A4, A5, A3), orientación y márgenes, usados al exportar a PDF e imprimir; el botón "Hoja" muestra la vista previa como una hoja de ese tamaño
 - **Matemática**: fórmulas LaTeX en línea (`$E=mc^2$`) y en bloque (`$$ ... $$`), mostradas como ecuaciones en vista previa, comparación y PDF (convertidor propio; cubre fracciones, raíces, sumas, integrales, matrices y más)

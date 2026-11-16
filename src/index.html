@@ -21,6 +21,7 @@
 
     <div class="tool-spacer"></div>
 
+    <button class="icon-btn" data-action="show-start" data-i18n-title="tabbar.homeTitle">🕘</button>
     <button class="icon-btn" data-action="open" data-i18n-title="tabbar.openTitle">
       <svg viewBox="0 0 20 20" width="16" height="16"><path fill="currentColor" d="M2 4.5A1.5 1.5 0 013.5 3h4l1.5 2H16.5A1.5 1.5 0 0118 6.5v8A1.5 1.5 0 0116.5 16h-13A1.5 1.5 0 012 14.5v-10z"/></svg>
     </button>
@@ -40,6 +41,7 @@
       <svg viewBox="0 0 20 20" width="16" height="16"><rect x="2" y="3" width="7" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="3" width="7" height="14" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
     </button>
     <button class="icon-btn icon-btn--text" id="languageToggle" data-action="toggle-language" data-i18n-title="tabbar.languageTitle">ES</button>
+    <button class="icon-btn" id="donateBtn" data-action="donate" data-i18n-title="tabbar.donateTitle" hidden>☕</button>
     <button class="icon-btn" data-action="show-info" data-i18n-title="tabbar.infoTitle">ⓘ</button>
   </header>
 
@@ -100,6 +102,7 @@
     <div class="tool-spacer"></div>
 
     <div class="tool-group">
+      <button class="tool-btn" id="htmlPreviewBtn" data-action="preview-code" data-i18n="toolbar.htmlPreviewBtn" data-i18n-title="toolbar.htmlPreviewTitle" hidden>Preview</button>
       <button class="tool-btn tool-btn--accent" data-action="export-pdf" data-i18n="toolbar.exportPdfBtn" data-i18n-title="toolbar.exportPdfTitle">Export PDF</button>
     </div>
   </header>
@@ -137,7 +140,7 @@
         <div class="modal-mark">+</div>
         <div>
           <div class="modal-title" style="text-align:left;">MDK</div>
-          <div class="modal-version" id="modalVersion">3.0.0</div>
+          <div class="modal-version" id="modalVersion">3.1.1</div>
         </div>
       </div>
       <div class="modal-subtitle" style="text-align:left;" data-i18n="info.subtitle">Simple Markdown editor</div>
@@ -218,6 +221,20 @@
         <button class="tool-btn" data-action="reset-skin" data-i18n="skins.resetBtn">Reset to VDC</button>
         <button class="tool-btn tool-btn--accent" data-action="apply-custom-skin" data-i18n="skins.applyBtn">Apply custom</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Pantalla de inicio: archivos recientes -->
+  <div id="startScreen" hidden>
+    <div class="start-inner">
+      <button class="modal-close" data-action="hide-start" data-i18n-title="home.close">×</button>
+      <div class="start-head"><div class="start-mark">+</div><div><div class="start-title">MDK</div><div class="start-sub" data-i18n="home.subtitle"></div></div></div>
+      <div class="start-actions">
+        <button class="tool-btn tool-btn--accent start-btn" id="startNew" data-i18n="home.new"></button>
+        <button class="tool-btn start-btn" id="startOpen" data-i18n="home.open"></button>
+      </div>
+      <div class="start-section" data-i18n="home.recent"></div>
+      <div class="start-list" id="startList"></div>
     </div>
   </div>
 
