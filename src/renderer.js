@@ -70,6 +70,7 @@
   // en src/i18n/strings.js (claves "changelog.X.Y.Z"); mantenerlo en sync
   // con CHANGELOG.md en la raíz del proyecto, que tiene el detalle completo.
   const CHANGELOG = [
+    { version: '3.2.0', textKey: 'changelog.3.2.0' },
     { version: '3.1.1', textKey: 'changelog.3.1.1' },
     { version: '3.1.0', textKey: 'changelog.3.1.0' },
     { version: '3.0.0', textKey: 'changelog.3.0.0' },
@@ -1144,6 +1145,8 @@
       case 'hide-start': hideStart(); break;
       case 'donate': if (window.mdk.openDonate) window.mdk.openDonate(); break;
       case 'preview-code': doPreviewCode(); break;
+      case 'teleprompter': doTeleprompter(); break;
+      case 'paste-plain': pastePlain(); break;
       case 'toggle-sidebar': toggleSidebar(); break;
       case 'toggle-search': toggleSearch(); break;
       case 'search-next': findNext(1); break;
@@ -1595,7 +1598,80 @@
     window.mdk.previewCode(kind, fileBaseName(getActiveDoc().filePath), editor.value);
   }
 
+  // ---------- pegado inteligente (Word, Google Docs, web -> Markdown) ----------
+  // Si el portapapeles trae HTML con estructura (encabezados, listas, tablas) se
+  // convierte a Markdown. Ctrl+Alt+V (o Editar → Pegar como texto plano) pega sin convertir.
+  let plainPasteNext = false;
+  editor.addEventListener('paste', (e) => {
+    if (plainPasteNext) { plainPasteNext = false; return; }
+    const cd = e.clipboardData;
+    if (!cd || !window.MDKHtmlMd) return;
+    const html = cd.getData('text/html');
+    if (!html || !window.MDKHtmlMd.shouldConvert(html)) return;
+    let md = '';
+    try { md = window.MDKHtmlMd.convert(html); } catch (err) { return; }
+    if (!md) return;
+    e.preventDefault();
+    editor.focus();
+    if (!document.execCommand('insertText', false, md)) {
+      const s = editor.selectionStart, en = editor.selectionEnd;
+      editor.setRangeText(md, s, en, 'end');
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
+  function pastePlain() {
+    plainPasteNext = true;
+    editor.focus();
+    const ok = document.execCommand('paste');
+    plainPasteNext = false;
+    return ok;
+  }
+
+  // ---------- teleprompter ----------
+  // Convierte Markdown en bloques de texto plano para leer (sin símbolos de formato).
+  function toPrompterBlocks(md) {
+    const clean = (s) => s
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/(\*\*|__)(.+?)\1/g, '$2')
+      .replace(/(^|[^\w*])\*([^*\n]+)\*(?=[^\w*]|$)/g, '$1$2')
+      .replace(/(^|\W)_([^_\n]+)_(?=\W|$)/g, '$1$2')
+      .replace(/~~(.+?)~~/g, '$1')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const blocks = [];
+    let para = [];
+    const flush = () => { const t = clean(para.join(' ')); if (t) blocks.push({ k: 'p', t }); para = []; };
+    let inFence = false;
+    md.replace(/\r\n?/g, '\n').split('\n').forEach((raw) => {
+      if (/^\s*(```|~~~)/.test(raw)) { flush(); inFence = !inFence; return; }
+      if (inFence) { if (raw.trim()) blocks.push({ k: 'p', t: raw.trim() }); return; }
+      const line = raw.replace(/\s+$/, '');
+      if (!line.trim()) { flush(); return; }
+      const h = /^\s{0,3}(#{1,6})\s+(.*)$/.exec(line);
+      if (h) { flush(); const t = clean(h[2].replace(/\s+#+\s*$/, '')); if (t) blocks.push({ k: 'h', l: h[1].length, t }); return; }
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line) || /^\s*\|?[\s:|-]+\|?\s*$/.test(line) && line.indexOf('-') !== -1 && line.indexOf('|') !== -1) { flush(); return; }
+      const li = /^\s*(?:[-*+]|\d+[.)])\s+(.*)$/.exec(line);
+      if (li) { flush(); const t = clean(li[1]); if (t) blocks.push({ k: 'p', t: '• ' + t }); return; }
+      if (/^\s*\|/.test(line)) { flush(); const t = clean(line.replace(/^\s*\||\|\s*$/g, '').split('|').join(' · ')); if (t) blocks.push({ k: 'p', t }); return; }
+      para.push(line.replace(/^\s*>\s?/, ''));
+    });
+    flush();
+    return blocks;
+  }
+  function doTeleprompter() {
+    if (!window.mdk || !window.mdk.openTeleprompter) return;
+    saveEditorIntoActiveDoc();
+    const sel = editor.value.slice(editor.selectionStart, editor.selectionEnd);
+    const source = sel.trim() ? sel : editor.value;
+    const doc = getActiveDoc();
+    window.mdk.openTeleprompter(toPrompterBlocks(source), doc && doc.filePath ? fileBaseName(doc.filePath) : '');
+  }
+
   // Elementos que solo aplican si el puente los soporta / según la edición.
+  { const tb = document.getElementById('teleprompterBtn'); if (tb && !(window.mdk && window.mdk.openTeleprompter)) tb.remove(); }
   if (!hasStart) { const b = document.querySelector('[data-action="show-start"]'); if (b) b.remove(); }
   if (!hasPreview && htmlPreviewBtn) htmlPreviewBtn.remove();
   if (donateBtn && window.mdk && window.mdk.edition === 'direct' && window.mdk.openDonate) donateBtn.hidden = false;

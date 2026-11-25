@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, shell, screen, globalShortcut } = require('electron');
 const childProcess = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -393,6 +393,7 @@ function createWindow() {
   // "Guardar todo" le pide al renderer que guarde cada documento modificado y,
   // si todo se guardó, el renderer llama a quit-now.
   let closePromptOpen = false;
+  mainWindow.on('closed', () => { if (tpWin && !tpWin.isDestroyed()) tpWin.close(); });
   mainWindow.on('close', (e) => {
     if (!hasUnsavedChanges) return;
     e.preventDefault();
@@ -461,6 +462,7 @@ function buildMenu() {
         { role: 'cut', label: t('menu.edit.cut') },
         { role: 'copy', label: t('menu.edit.copy') },
         { role: 'paste', label: t('menu.edit.paste') },
+        { label: t('menu.edit.pastePlain'), accelerator: 'CmdOrCtrl+Alt+V', click: () => send('menu-action', 'paste-plain') },
         { role: 'selectAll', label: t('menu.edit.selectAll') },
         { type: 'separator' },
         { label: t('menu.edit.find'), accelerator: 'CmdOrCtrl+F', click: () => send('menu-action', 'toggle-search') }
@@ -489,6 +491,7 @@ function buildMenu() {
         { label: t('menu.view.preview'), accelerator: 'CmdOrCtrl+Shift+V', click: () => send('menu-action', 'view-preview') },
         { label: t('menu.view.split'), accelerator: 'CmdOrCtrl+Shift+B', click: () => send('menu-action', 'view-split') },
         { label: t('menu.view.compare'), accelerator: 'CmdOrCtrl+Shift+C', click: () => send('menu-action', 'show-compare') },
+        { label: t('menu.view.teleprompter'), accelerator: 'CmdOrCtrl+Alt+T', click: () => send('menu-action', 'teleprompter') },
         { type: 'separator' },
         { label: t('menu.view.toggleSidebar'), accelerator: 'CmdOrCtrl+\\', click: () => send('menu-action', 'toggle-sidebar') },
         { label: t('menu.view.darkMode'), accelerator: 'CmdOrCtrl+Shift+D', click: () => send('menu-action', 'toggle-dark') },
@@ -711,6 +714,152 @@ ipcMain.handle('preview-code', async (_evt, { kind, name, code }) => {
   return { ok: true };
 });
 
+// ---- Teleprompter ----
+// Ventana siempre encima, sin marco y sin maximizar (pensada para quedar bajo la
+// cámara del portátil). Sandbox + preload mínimo; el texto se pinta con textContent.
+// En la edición Store sin Pro se proyectan hasta TP_FREE_CHARS caracteres; la
+// edición directa no tiene límite (todo es gratis allí).
+const TP_FREE_CHARS = 5000;
+const TP_STRING_KEYS = ['title', 'auto', 'manual', 'speed', 'play', 'pause', 'hide', 'hideOn', 'hideOff', 'mirror', 'fit',
+  'close', 'warnManual', 'warnShortcut', 'bigger', 'smaller', 'end', 'modeLabel'];
+let tpWin = null;
+const TP_SHORTCUTS = [
+  ['CommandOrControl+Alt+Up', 'up'],
+  ['CommandOrControl+Alt+Down', 'down'],
+  ['CommandOrControl+Alt+Space', 'toggle']
+];
+function tpUnregister() {
+  TP_SHORTCUTS.forEach(([acc]) => { try { globalShortcut.unregister(acc); } catch (e) { /* nada */ } });
+}
+function tpFill(s, vars) {
+  return String(s).replace(/\{(\w+)\}/g, (_m, k) => (vars && vars[k] != null ? vars[k] : ''));
+}
+
+function sanitizeBlocks(raw) {
+  const out = [];
+  if (!Array.isArray(raw)) return out;
+  for (const b of raw) {
+    if (!b || typeof b.t !== 'string') continue;
+    const k = b.k === 'h' ? 'h' : 'p';
+    const l = Math.min(6, Math.max(1, Number(b.l) || 1));
+    const text = b.t.slice(0, 20000);
+    if (text.trim()) out.push({ k, l, t: text });
+  }
+  return out;
+}
+
+function limitBlocks(blocks, max) {
+  let used = 0;
+  const out = [];
+  for (const b of blocks) {
+    if (used + b.t.length <= max) { out.push(b); used += b.t.length; continue; }
+    const room = max - used;
+    if (room > 20) {
+      let cut = b.t.slice(0, room);
+      const sp = cut.lastIndexOf(' ');
+      if (sp > room * 0.6) cut = cut.slice(0, sp);
+      out.push({ k: b.k, l: b.l, t: cut + '…' });
+    }
+    break;
+  }
+  return out;
+}
+
+ipcMain.handle('open-teleprompter', async (_evt, { blocks, name }) => {
+  let list = sanitizeBlocks(blocks);
+  if (!list.length) {
+    await dialog.showMessageBox(mainWindow, { type: 'info', buttons: [t('dialog.ok')], title: t('tp.title'), message: t('tp.empty') });
+    return { ok: false };
+  }
+  const total = list.reduce((n, b) => n + b.t.length, 0);
+  let limited = false;
+  if (total > TP_FREE_CHARS && !proUnlocked()) {
+    if (await refreshProLicense() && proUnlocked()) { /* acaba de activar Pro */ }
+    else {
+      const { response } = await dialog.showMessageBox(mainWindow, {
+        type: 'info', noLink: true, defaultId: 0, cancelId: 2,
+        buttons: [tpFill(t('tp.limitContinue'), { n: TP_FREE_CHARS }), t('tp.limitPro'), t('dialog.cancel')],
+        title: t('tp.title'),
+        message: tpFill(t('tp.limitMessage'), { n: TP_FREE_CHARS, total })
+      });
+      if (response === 1) { await showProDialog(); if (!proUnlocked()) return { ok: false }; }
+      else if (response !== 0) return { ok: false };
+      if (!proUnlocked()) { list = limitBlocks(list, TP_FREE_CHARS); limited = true; }
+    }
+  }
+  if (limited) list.push({ k: 'note', l: 1, t: tpFill(t('tp.limitNote'), { n: TP_FREE_CHARS }) });
+
+  const prefs = (readSettings().teleprompter) || {};
+  if (tpWin && !tpWin.isDestroyed()) { tpWin.close(); }
+
+  const wa = screen.getPrimaryDisplay().workArea;
+  const w = Math.min(780, wa.width - 40);
+  const win = new BrowserWindow({
+    width: w, height: 200,
+    x: Math.round(wa.x + (wa.width - w) / 2), y: wa.y,      // pegada al borde superior (bajo la cámara)
+    minWidth: 280, minHeight: 90,
+    frame: false, resizable: true,
+    maximizable: false, fullscreenable: false,              // arrastrarla arriba no la maximiza
+    alwaysOnTop: true, hasShadow: true,
+    title: 'MDK Teleprompter',
+    backgroundColor: '#0b0c0f',
+    webPreferences: {
+      preload: path.join(__dirname, 'src', 'teleprompter-preload.js'),
+      sandbox: true, contextIsolation: true, nodeIntegration: false,
+      partition: 'mdk-teleprompter'
+    }
+  });
+  tpWin = win;
+  win.setAlwaysOnTop(true, 'screen-saver');
+  win.setMenu(null);
+  win.setContentProtection(prefs.hidden !== false);          // por defecto, oculta en capturas
+  win.on('maximize', () => { if (!win.isDestroyed()) win.unmaximize(); });   // respaldo del snap
+  win.webContents.session.setPermissionRequestHandler((_w, _p, cb) => cb(false));
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  win.webContents.on('will-navigate', (e) => e.preventDefault());
+
+  let shortcutsOk = true;
+  TP_SHORTCUTS.forEach(([acc, cmd]) => {
+    let ok = false;
+    try { ok = globalShortcut.register(acc, () => { if (!win.isDestroyed()) win.webContents.send('tp-cmd', cmd); }); } catch (e) { ok = false; }
+    if (!ok) shortcutsOk = false;
+  });
+  win.on('closed', () => { tpUnregister(); if (tpWin === win) tpWin = null; });
+
+  const strings = {};
+  TP_STRING_KEYS.forEach((k) => { strings[k] = t('tp.' + k); });
+  win.webContents.once('did-finish-load', () => {
+    if (win.isDestroyed()) return;
+    win.webContents.send('tp-init', {
+      blocks: list, name: name || '', strings, shortcutsOk,
+      prefs: { mode: prefs.mode === 'manual' ? 'manual' : 'auto', speed: prefs.speed || 12, scale: prefs.scale || 1,
+        fit: prefs.fit !== false, mirror: !!prefs.mirror, hidden: prefs.hidden !== false }
+    });
+  });
+  win.loadFile(path.join(__dirname, 'src', 'teleprompter.html'));
+  return { ok: true };
+});
+
+ipcMain.handle('tp-set-hidden', (evt, hidden) => {
+  const w = BrowserWindow.fromWebContents(evt.sender);
+  if (w && w === tpWin) { w.setContentProtection(!!hidden); }
+  return !!hidden;
+});
+ipcMain.on('tp-save-prefs', (_evt, p) => {
+  if (!p || typeof p !== 'object') return;
+  const clean = {
+    mode: p.mode === 'manual' ? 'manual' : 'auto',
+    speed: Math.min(100, Math.max(1, Number(p.speed) || 12)),
+    scale: Math.min(6, Math.max(0.3, Number(p.scale) || 1)),
+    fit: p.fit !== false, mirror: !!p.mirror, hidden: p.hidden !== false
+  };
+  writeSettings({ ...readSettings(), teleprompter: clean });
+});
+ipcMain.on('tp-close', (evt) => {
+  const w = BrowserWindow.fromWebContents(evt.sender);
+  if (w && w === tpWin) w.close();
+});
+
 // ---- IPC: exportar a PDF ----
 // Tamaño de hoja personalizado (mm) -> pulgadas (printToPDF) o micras (print).
 function pageDimsFrom(page) {
@@ -782,6 +931,8 @@ ipcMain.on('get-language-sync', (evt) => {
 });
 ipcMain.handle('get-language', () => currentLanguage);
 ipcMain.on('set-language', (_evt, lang) => setLanguage(lang));
+
+app.on('will-quit', () => { try { globalShortcut.unregisterAll(); } catch (e) { /* nada */ } });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

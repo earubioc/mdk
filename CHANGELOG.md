@@ -7,6 +7,25 @@ también se muestran resumidas dentro de la app (botón ⓘ → "Novedades"). Al
 entrada nueva aquí, actualiza también el arreglo `CHANGELOG` en `src/renderer.js` para que
 la app muestre lo mismo.
 
+## 3.2.0
+
+- Nuevo: **Teleprompter** (Ver → Teleprompter, Ctrl+Alt+T, o el botón de la barra). Proyecta el
+  documento (o la selección) en una ventana pequeña, sin marco, siempre encima de todo y
+  pegada al borde superior de la pantalla (bajo la cámara). Dos modos: Automático (velocidad con
+  deslizador, pausa con Espacio) y Manual (flechas, AvPág/RePág). Al entrar en Manual avisa que
+  las flechas requieren que la ventana tenga el foco; mientras está abierta funcionan los atajos
+  globales Ctrl+Alt+↑ / ↓ / Espacio sin foco. El texto se ajusta al ancho de la ventana, tiene
+  botones + y − sutiles para el tamaño de letra, modo espejo, y se puede ocultar de capturas de
+  pantalla y videollamadas (por defecto activado, Windows 10 2004 o posterior). Arrastrarla al borde
+  superior no la maximiza. Edición Store sin Pro: hasta 5 000 caracteres; la edición directa no
+  tiene límite.
+- Nuevo: **pegado inteligente**. Al pegar desde Word, Google Docs o una página web, los
+  encabezados (Título 1/2/3…), listas, tablas, negrita, cursiva y enlaces se convierten a Markdown.
+  Editar → Pegar como texto plano (Ctrl+Alt+V) pega sin convertir. Pegar código desde un editor no
+  se altera.
+- Nuevo: el instalador agrega **Markdown (MDK)** al submenú Nuevo del clic derecho del Explorador
+  (crea un `.md` vacío). No aplica a la versión de la Microsoft Store ni a la portable.
+
 ## 3.1.1
 
 - Nuevo: la ventana de vista previa de HTML/SVG tiene menú Archivo con Exportar a PDF

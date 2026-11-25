@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>MDK Teleprompter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #0b0c0f; color: #f2f2f5; overflow: hidden;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; user-select: none; }
+  #vp { position: absolute; inset: 0; overflow: hidden; }
+  #txt { position: absolute; left: 0; right: 0; top: 0; padding: 0 5%; line-height: 1.45; will-change: transform; text-align: left; }
+  #txt .p { margin: 0 0 .8em; }
+  #txt .h { margin: .2em 0 .55em; font-weight: 700; color: #fff; }
+  #txt .h1 { font-size: 1.28em; } #txt .h2 { font-size: 1.16em; } #txt .h3, #txt .h4, #txt .h5, #txt .h6 { font-size: 1.06em; }
+  #txt .note { margin: 1em 0; font-size: .6em; color: #E8584A; font-style: italic; }
+  #guide { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed rgba(232,88,74,.28); pointer-events: none; }
+
+  /* Barra superior: se atenúa cuando el ratón no está encima; sirve de zona de arrastre */
+  #bar { position: absolute; top: 0; left: 0; right: 0; height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 6px;
+    background: linear-gradient(#0b0c0f 70%, rgba(11,12,15,0)); -webkit-app-region: drag; opacity: .28; transition: opacity .2s; z-index: 5; }
+  body:hover #bar, #bar:focus-within { opacity: 1; }
+  #bar > * { -webkit-app-region: no-drag; }
+  #bar .grow { flex: 1; -webkit-app-region: drag; min-width: 4px; }
+  .seg { display: inline-flex; border: 1px solid rgba(255,255,255,.25); border-radius: 6px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; color: #b9bcc6; padding: 3px 8px; font: 600 11px 'Segoe UI', sans-serif; cursor: pointer; }
+  .seg button.on { background: #E8584A; color: #fff; }
+  .ib { border: 0; background: transparent; color: #b9bcc6; width: 26px; height: 24px; border-radius: 6px; cursor: pointer; font-size: 14px; line-height: 1; }
+  .ib:hover { background: rgba(255,255,255,.12); color: #fff; }
+  .ib.on { color: #E8584A; }
+  #speed { width: 90px; accent-color: #E8584A; }
+  #speedWrap { display: inline-flex; align-items: center; gap: 4px; }
+  #speedWrap span { font-size: 10px; color: #8b8f9c; }
+
+  /* + / - sutiles */
+  #zoom { position: absolute; right: 8px; bottom: 8px; display: flex; flex-direction: column; gap: 4px; opacity: .35; transition: opacity .2s; z-index: 5; }
+  #zoom:hover { opacity: 1; }
+  #zoom button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #e7e8ee; font-size: 16px; line-height: 1; cursor: pointer; }
+  #zoom button:hover { background: rgba(255,255,255,.2); }
+
+  #warn { position: absolute; top: 34px; left: 8px; right: 44px; background: rgba(192,57,43,.95); color: #fff; font-size: 12px; line-height: 1.35;
+    padding: 7px 10px; border-radius: 8px; z-index: 6; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+  #warn[hidden] { display: none; }
+</style>
+</head>
+<body>
+  <div id="vp"><div id="txt"></div><div id="guide"></div></div>
+
+  <div id="bar">
+    <div class="seg" id="modeSeg"><button id="mAuto"></button><button id="mManual"></button></div>
+    <button class="ib" id="play">▶</button>
+    <span id="speedWrap"><input type="range" id="speed" min="1" max="60" step="1"><span id="speedVal"></span></span>
+    <div class="grow"></div>
+    <button class="ib" id="fitBtn">⇔</button>
+    <button class="ib" id="mirrorBtn">⇋</button>
+    <button class="ib" id="hideBtn">◉</button>
+    <button class="ib" id="closeBtn">✕</button>
+  </div>
+
+  <div id="zoom"><button id="plus">+</button><button id="minus">−</button></div>
+  <div id="warn" hidden></div>
+  <script src="teleprompter.js"></script>
+</body>
+</html>

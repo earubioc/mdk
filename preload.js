@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('mdk', {
   removeRecent: (filePath) => ipcRenderer.invoke('remove-recent', filePath),
   openDonate: () => ipcRenderer.invoke('open-donate'),
   previewCode: (kind, name, code) => ipcRenderer.invoke('preview-code', { kind, name, code }),
+  openTeleprompter: (blocks, name) => ipcRenderer.invoke('open-teleprompter', { blocks, name }),
   onRecentsChanged: (callback) => ipcRenderer.on('recents-changed', () => callback()),
 
   // Archivo

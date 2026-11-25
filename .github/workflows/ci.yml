@@ -29,7 +29,7 @@ jobs:
       - name: Verificar sintaxis de los .js
         shell: bash
         run: |
-          for f in main.js preload.js src/renderer.js src/markdown.js src/i18n/strings.js; do
+          for f in main.js preload.js src/renderer.js src/markdown.js src/math.js src/htmlmd.js src/teleprompter.js src/teleprompter-preload.js src/i18n/strings.js; do
             node --check "$f"
           done
 
